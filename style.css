@@ -1,0 +1,1619 @@
+/*
+Theme Name: DataOn
+Theme URI: https://github.com/tidythemes/blankslate
+Author: TidyThemes
+Author URI: https://github.com/tidythemes
+Description: Donations: https://calmestghost.com/donate. BlankSlate is the definitive WordPress boilerplate starter theme. We've carefully constructed the most clean and minimalist theme possible for designers and developers to use as a base to build websites for clients or to build completely custom themes from scratch. Clean, simple, unstyled, semi-minified, unformatted, and valid code, SEO-friendly, jQuery-enabled, no programmer comments, standardized and as white label as possible, and most importantly, the CSS is reset for cross-browser-compatability and no intrusive visual CSS styles have been added whatsoever. A perfect skeleton theme. For support and suggestions, go to: https://github.com/tidythemes/blankslate/issues. Thank you.
+Tags: accessibility-ready, one-column, two-columns, custom-menu, featured-images, microformats, sticky-post, threaded-comments, translation-ready
+Version: 2023
+Requires at least: 5.2
+Tested up to: 6.1
+Requires PHP: 7.0
+License: GNU General Public License v3 or Later
+License URI: https://www.gnu.org/licenses/gpl.html
+Text Domain: blankslate
+
+BlankSlate WordPress Theme © 2011-2023 TidyThemes
+BlankSlate is distributed under the terms of the GNU GPL
+*/
+
+/*html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video
+{
+    margin:0;
+    padding:0;
+    border:0;
+    font-size:100%;
+    font-family:sans-serif;
+    vertical-align:baseline;
+}*/
+
+
+
+@font-face {
+    font-family: 'Helvetica Now';
+    src: url(/wp-content/themes/blankslate-dataon/assets/fonts/HelveticaNowText-Regular.otf);
+    font-weight: 500;
+  }
+  @font-face {
+    font-family: 'Helvetica Now';
+    src: url(/wp-content/themes/blankslate-dataon/assets/fonts/HelveticaNowText-Bold.otf);
+    font-weight: 700;
+  }
+  @font-face {
+    font-family: 'Helvetica Now Black';
+    src: url(/wp-content/themes/blankslate-dataon/assets/fonts/HelveticaNowText-Black.otf);
+    font-weight: 500;
+  }
+  @font-face {
+    font-family: 'Helvetica Now';
+    src: url(/wp-content/themes/blankslate-dataon/assets/fonts/HelveticaNowText-Light.otf);
+    font-weight: 300;
+  }
+  @font-face {
+    font-family: 'Helvetica Now';
+    src: url(/wp-content/themes/blankslate-dataon/assets/fonts/HelveticaNowText-RegIta.otf);
+    font-weight: 500;
+    font-style: italic;
+  }
+  @font-face {
+    font-family: 'Helvetica Now';
+    src: url(/wp-content/themes/blankslate-dataon/assets/fonts/HelveticaNowText-Thin.otf);
+    font-weight: 200;
+  }
+    
+html
+{
+    scroll-behavior:smooth;
+    font-size: 10px;
+}
+    
+body {
+    font-family: 'Helvetica Now', sans-serif;
+    font-size: 16px;
+    line-height:1.3;
+    color: #4d4d4f;
+    font-weight: 300;
+}
+ 
+a { 
+    text-decoration: none !important;
+}
+a[href^="tel"] { color:inherit; text-decoration:none }
+button { outline:0 }
+blockquote,q { quotes:none }
+blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}q{display:inline;font-style:italic}q:before{content:'"';font-style:normal}q:after{content:'"';font-style:normal}textarea,input[type="text"],input[type="button"],input[type="submit"],input[type="reset"],input[type="search"],input[type="password"]{-webkit-appearance:none;appearance:none;border-radius:0}input[type="search"]{-webkit-appearance:textfield}table{border-collapse:collapse;border-spacing:0}th,td{padding:2px}big{font-size:120%}small,sup,sub{font-size:80%}sup{vertical-align:super}sub{vertical-align:sub}dd{margin-left:20px}kbd,tt{font-family:courier;font-size:12px}ins{text-decoration:underline}del,strike,s{text-decoration:line-through}dt{font-weight:bold}address,cite,var{font-style:italic}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+.sticky{}.bypostauthor{}.wp-caption{}.wp-caption-text{}.gallery-caption{}.alignright{}.alignleft{}.aligncenter{}
+.screen-reader-text{border:0;clip:rect(1px,1px,1px,1px);-webkit-clip-path:inset(50%);clip-path:inset(50%);height:1px;margin:-1px;overflow:hidden;padding:0;position:absolute!important;width:1px;word-wrap:normal!important;word-break:normal}
+.screen-reader-text:focus{background-color:#f7f7f7;border-radius:3px;box-shadow:0 0 2px 2px rgba(0,0,0,.6);clip:auto!important;-webkit-clip-path:none;clip-path:none;color:#007acc;display:block;font-size:14px;font-size:.875rem;font-weight:700;height:auto;right:5px;line-height:normal;padding:15px 23px 14px;text-decoration:none;top:5px;width:auto;z-index:100000}
+.skip-link{left:-9999rem;top:2.5rem;z-index:999999999;text-decoration:underline}
+.skip-link:focus{display:block;left:6px;top:7px;font-size:14px;font-weight:600;text-decoration:none;line-height:normal;padding:15px 23px 14px;z-index:100000;right:auto}
+.visually-hidden:not(:focus):not(:active), .form-allowed-tags:not(:focus):not(:active){position:absolute !important;height:1px;width:1px;overflow:hidden;clip:rect(1px 1px 1px 1px);clip:rect(1px, 1px, 1px, 1px);white-space:nowrap}
+
+p 
+{
+    margin-bottom: 2.5rem;
+    font-size: 16px;
+    line-height: unset;
+}
+
+h1, .h1 {
+    font-size: 42px;
+    font-weight: 700;
+    margin-bottom: 4rem;
+}
+h2, .h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    margin-top: 1rem;
+}
+h3, .h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 2rem;
+}
+h4, .h4 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 2rem;
+}
+h5, .h5 {
+    margin-bottom: 2rem;
+}
+
+.subheads-a {
+    font-size: 42px;
+    font-weight: 500;
+
+}
+.subheads-b {
+    font-size: 28px;
+    font-weight: 700;
+}
+.subheads-c {
+    font-size: 28px;
+    font-weight: 300;
+}
+
+/*----- Buttons -----*/
+.wp-element-button {
+    display: flex;
+    justify-content: center;
+    background-color: transparent!important;
+    color: #000!important;
+    border: 1px solid #000!important;
+    font-weight: 300;
+    transition: 0.5s;
+}
+.wp-element-button:after {
+    display: block;
+    content: "\27F6";
+    margin-left: 10px;
+}
+.wp-element-button:hover {
+    color: #88898b!important;
+    transition: 0.5s;
+}
+.is-style-outline .wp-element-button {
+    background-color: transparent!important;
+    color: #88898b!important;
+    border: 1px solid #88898b!important;
+}
+.is-style-outline .wp-element-button:hover {
+    background-color: transparent!important;
+    color: #feb415!important;
+    border: 1px solid #feb415!important;
+}
+
+
+#wrapper #header, 
+#wrapper .navbar, 
+#wrapper #footer {
+    background-color: #000;
+}
+
+.mast-head {
+    background: url('') no-repeat;
+    margin-top: 1rem;
+    position: relative;
+    margin-bottom: 5rem !important;
+}
+
+.mast-head-img img {
+    width: 100%;
+}
+
+/*h1 
+{
+    font-weight: bold;
+    font-size: 3.5rem;
+
+}
+
+h2 
+{
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+}
+
+h3 
+{
+    font-weight: bold;
+}*/
+
+
+.mast-head .subtitle
+{
+    font-size:3.1rem;
+    line-height: 1.1;
+}
+
+
+.title 
+{
+    position: absolute;
+    top: 23%;
+    background: rgba(0,0,0,.2);
+    color: #fff;
+    font-size: 2.5rem;
+    max-width: 550px;
+    padding: 1.4rem 4rem 2rem 2.5rem;
+    left: 5%;
+}
+
+#wrapper section 
+{
+    margin-bottom: 10rem;
+    font-size: 2rem;
+}
+
+.section 
+{
+    margin: 0 auto 10rem auto;
+}
+
+.home-banner.section
+{
+    max-width: 100% !important;
+}
+
+img 
+{
+    max-width: 100%;
+}
+
+ul 
+{
+    margin-top: 2rem;
+}
+
+ul li 
+{
+    padding-left: 2rem;
+    margin-left: 1rem;
+    margin-bottom: .5rem;
+}
+
+
+.featured-content 
+{
+    padding-right: 2rem;
+    padding-left: 3rem;
+}
+
+section.two h2, section.two .subtitle 
+{
+    text-align: center;
+    padding: 0 10rem;
+    margin-bottom: 2rem;
+}
+
+.fs-content h3 
+{
+    margin: 1rem 0;
+}
+
+.fs-content
+{
+    padding: 0 1.5rem;
+}
+
+.fs-button 
+{
+    margin-top: 2rem;
+}
+
+.four h2 
+{
+    width: 55%;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+.five h2, .six h2 
+{
+    text-align: center;
+}
+
+.customer-logos
+{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.customer-logos img
+{
+    width: 200px;
+    margin: 1rem 1rem;
+}
+
+section.cta 
+{
+    background: #4473c5;
+    color: #fff;
+    padding: 5rem;
+    margin-bottom: 0 !important;
+}
+
+.cta-content h4 {
+    margin-bottom: 20px;
+    font-size: 3.5rem;
+    padding-right: 10rem;
+}
+
+.cta-content p 
+{
+    font-size: 2.5rem;
+}
+
+.cta-items 
+{
+    /* display: flex; */
+
+}
+
+.cta-icon {
+    background: #203864;
+    /* margin-right: 1.5rem; */
+    padding: 2rem 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-flow: column;
+    cursor: pointer;
+    min-height: 180px;
+    text-align: center;
+    font-size: 19px;
+}
+.cta-icon svg {
+    margin-bottom: 10px;
+    fill: #fff;
+}
+
+.cta-icon:hover 
+{
+    background: #01b0f1;
+} 
+
+.six .fs-button {
+    margin-top: 5rem;
+}
+.six .fs-button a {
+    text-decoration: none;
+    background: #4473c5;
+    color: #fff;
+    padding: 1rem 3rem;
+
+}
+
+@media all and (min-width: 992px) {
+	.navbar .nav-item .dropdown-menu{ 
+        display: none; 
+        opacity: 0; 
+        transition: 1s; 
+        border-radius: 0 0 10px 10px; 
+        box-shadow: 3px 3px 40px grey;
+    }
+
+	.navbar .nav-item:hover .nav-link
+        {   }
+
+	.navbar .nav-item:hover .dropdown-menu
+        { 
+            display: block; 
+            transition: 1s; 
+            opacity: 1; 
+            padding-top: 1rem; 
+        }
+
+	.navbar .nav-item .dropdown-menu
+        { 
+            margin-top:0; 
+        }
+}
+
+
+textarea, 
+input[type="text"], 
+input[type="button"], 
+input[type="submit"], 
+input[type="reset"], 
+input[type="search"], 
+input[type="password"] {
+    padding: 5px 10px;
+    border: 0;
+}
+
+.title-container 
+{
+    display: flex;
+    align-items: center;
+}
+
+.title-container img 
+{
+    width: 40px;
+    margin-right: 1rem;
+    height: auto;
+}
+
+
+
+
+.navbar-expand-xl .navbar-nav .nav-link
+{
+    padding-top: 15px;
+    padding-bottom: 30px;
+}
+
+
+.img-grey {
+    filter: grayscale(1);
+}
+
+.hidden {
+    display: none!important;
+}
+
+.wp-block-button.is-style-outline>.wp-block-button__link, 
+.wp-block-button .wp-block-button__link.is-style-outline {
+    border: 1px solid;
+    padding: 0.4em 1.333em;
+}
+
+table.tg {
+    width: 100%;
+}
+
+table.tg td {
+    padding: 10px 5px;
+    border-style: solid;
+    border-color: #000;
+    border-width: 1px;
+    overflow: hidden;
+    word-break: normal;
+    text-align: center;
+}
+table.tg td a {
+    color: #000;
+    text-decoration: none;
+}
+
+td.tg-nibj {
+    font-weight: bold;
+    background-color: #ffc702;
+    text-align: center;
+    vertical-align: top;
+}
+
+@media (min-width: 1400px) {
+    .container, .container-lg, .container-md, .container-sm, .container-xl, .container-xxl {
+        max-width: 1400px;
+    }
+}
+
+/*---------- Footer ----------*/
+footer, #footer{
+    padding: 3rem 0;
+    background-color: #000;
+}
+
+footer.footer 
+{
+    background-color: transparent;
+}
+
+.footer-logo img  {
+    width: 125px;
+    height: auto;
+}
+
+.footer-menu ul li a {
+    text-decoration: none;
+    color: #fff;
+    font-size: 1.2rem;
+}
+
+.footer-menu ul li {
+    line-height: 1.4;
+
+}
+.footer-nav ul {
+    margin: 0 0 2rem;
+    padding: 0;
+}
+.footer-nav ul li {
+    list-style-type: none;
+    margin-bottom: .5rem;
+    padding: 0;
+}
+
+.news.cat-list
+{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.news.cat-list li
+{
+    list-style-type: none;
+    margin: 4rem 1rem 1rem 1rem;
+    font-weight: bold;
+}
+
+.news.cat-list li a 
+{
+    text-decoration: none;
+    color: #000;
+}
+
+.banner.news-section .container .row
+{
+    display: flex;
+}
+
+.block.networking, .block-spread 
+{
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+}
+
+.block.networking h3, .block-spread p
+{
+    flex-grow: 2;
+}
+
+
+.product .block-spread h3, .single-product .block-spread h3, .page .block-spread h3  
+{
+    flex-grow: 2;
+}
+
+
+
+.cs-logo 
+{
+    background: rgba(0,0,0,.5);
+    color: #fff;
+    font-size: 3rem;
+    font-weight: bold;
+    padding: 2rem;
+    height: fit-content;
+}
+
+.col-img 
+{
+    align-items: center;
+}
+
+
+
+
+@media all and (min-width: 1025px) {
+
+article.post-29, article.post-7169, article.post-37, article.post-8935, article.post-8936, article.post-9375, article.post-8934, article.post-8614, article.post-8602, article.post-8938, article.post-10491, article.post-10478, article.post-10577, article.post-39, .single-product .product, article.post-8613, article.post-2652, article.post-8877, article.post-8861, article.post-8884, article.post-4809, article.post-6648, article.post-1593, article.post-1839, article.post-45, article.post-5013, article.post-9538, .vertical-grey, article.post-10578, article.post-10579, article.post-10580, article.post-10759, article.post-10988
+{
+    padding: 0 10rem;
+}
+
+}
+
+
+@media all and (min-width: 768px) {
+    .footer-nav {
+        display: flex;
+        justify-content: space-between;
+    }
+}
+
+
+@media all and (max-width: 768px) {
+   .entry-content
+	{
+		/* padding: 20px; */
+	}
+    
+	
+	.banner .col-content .title-proj-name, h1
+	{
+		font-size: 50px !important;
+	}
+
+    .cs-sidebar 
+    {
+        padding: 2rem;
+    }
+    .banner .col-content .title-opt-pfl
+    {
+        font-size: 20px;
+    }
+
+    .banner .col-content .title-proj-name, h1
+    {
+        font-size: 30px !important;
+    }
+
+    .banner .col-content
+    {
+        background: rgba(0,0,0,.7);
+        padding: 5rem 4rem;
+    }
+
+
+
+	
+
+}
+
+@media all and (max-width: 900px) {
+    .cs-sidebar
+    {
+        padding:1rem;
+    }
+}
+
+
+
+@media all and (max-width: 1200px) {
+    .cs-sidebar figure
+    {
+        margin-top: -5rem;
+        margin-bottom: -2rem;
+    }
+
+    .cta-icon 
+    {
+        min-height: 250px;
+        margin-bottom: 2rem;
+
+    }
+
+    .cta-content 
+    {
+        margin-bottom: 5rem;
+    }
+}
+
+@media all and (max-width: 768px) {
+    .cs-sidebar figure
+    {
+        margin-top: -5rem;
+        margin-bottom: -2rem;
+    }
+
+    .icon-text figure
+    {
+        text-align: center;
+    }
+
+    .awards-right 
+    {
+        padding: 0 2rem;
+    }
+
+    .product .awards .awards-right p 
+    {
+        padding-right: 0;
+    }
+
+    .download .wp-block-column 
+    {
+        margin-bottom: 5rem;
+    }
+
+    .vert-3box figure img 
+    {
+        width: 100%;
+    }
+
+
+    .cta-content h4
+    {
+        padding-right: 0px;
+    }
+
+    .news-blog 
+    {
+        flex-direction: column;
+    }
+
+    .featured.upper 
+    {
+        flex-direction: column;
+    }
+
+    .featured-blog.right article
+    {
+        margin-left: 0px !important;
+    }
+
+    .featured.upper article.post .post-img
+    {
+        min-height: 170px !important;
+    }
+
+    .featured-blog.left article 
+    {
+        margin-right: 0px !important;
+    }
+
+    article.post
+    {
+        width: 100%;
+    }
+
+    .kepler-family .bust-out
+    {
+        padding: 5rem !important;
+    }
+
+    .home-banner.section
+    {
+        margin-top: 0 !important;
+    }
+
+    .journey 
+    {
+        padding: 20px !important;
+    }
+
+    .in-container.difference .left 
+    {
+        padding-right: 0;
+    }
+
+    .three-stack .wp-block-column
+    {
+        padding: 0rem;
+    }
+
+    nav .navbar-collapse 
+    {
+        padding:2rem;
+    }
+
+    .testimonials .slick-prev
+    {
+        left: -5px;
+    }
+
+    .testimonials .slick-next
+    {
+        right: -5px;
+    }
+
+    #wrapper .banner 
+    {
+        min-height: 0px;
+        padding: 1rem;
+    }
+
+    #wrapper .banner .col-content
+    {
+        padding: 2rem 1rem;
+    }
+
+    .azure-stack-hci .azure-stack-hci .four-x-four p
+    {
+        padding: 0px;
+    }
+
+
+}
+
+
+
+
+
+@media all and (min-width: 1200px) {
+    
+    h2
+    {
+        font-size: 32px;
+    }
+
+    h3 
+    {
+        font-size: 23px;
+    }
+
+}
+
+
+
+@media all and (min-width: 769px) {
+
+    .two-across div:nth-child(1)
+    {
+        padding-left: 15%;
+    }
+
+    .two-across div:nth-child(2)
+    {
+        padding-right: 15%;
+    }
+
+    .aks-hybrid-micro .three-across
+    {
+        padding: 0 15rem;
+    }
+
+}
+
+
+
+
+.cs-sidebar 
+{
+    flex-basis: 30% !important;
+}
+
+.technology p 
+{
+    padding: 0 1.5rem;
+}
+
+.technology div .wp-block-columns 
+{
+    margin-bottom: 10rem;
+}
+
+
+
+
+.kb-3 .wp-block-column 
+{
+    border: 1px solid #000;
+    padding: 2rem;
+}
+
+.kb-3 .wp-block-column ul li
+{
+    padding-left: 0px;
+    margin-left: 0px;
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.kb-3 .wp-block-column ul li a 
+{
+    flex:3; 
+    margin-left: 2rem;
+}
+
+.kb-3 .wp-block-column ul li time 
+{
+    flex: 1.5;
+}
+
+
+
+#post-53 h1.entry-title
+{
+    display: none;
+}
+
+
+
+.azure-stack-hci .four-x-four figure, .azure-stack-hci .media-text figure, .azure-arc .four-x-four figure, .azure-arc .media-text figure, .aks-hybrid .three-box figure 
+{
+text-align: center;
+}
+
+.azure-stack-hci .four-x-four figure img, .azure-arc .four-x-four figure img, .aks-hybrid .three-box figure img  
+{
+    padding: 1rem 4rem;
+}
+
+.azure-stack-hci .four-x-four p, .azure-arc .four-x-four p, .aks-hybrid .three-box p 
+{
+    padding: 0rem 1rem 0 3rem;
+}
+
+.azure-stack-hci .media-text img, .aks-hybrid .three-box figure img  
+{
+    max-width: 400px;
+}
+
+.azure-arc .media-text img
+{
+    max-width: 500px;
+}
+
+.hci-delivers img
+{
+    max-width: 100% !important;
+}
+
+
+
+
+
+.mu10 
+{
+    margin-bottom: 30px;
+}
+
+.section.media-text.on-prem div, .section.media-text.new-azure div
+{
+    padding-left: 0px;
+}
+
+
+
+.fullw h2, .fullw p 
+{
+    color: #fff;
+}
+
+.trusted-h2 
+{
+    margin-bottom: 6rem;
+}
+
+.trusted-img figure, .trusted-img img 
+{
+    width: 100%;
+}
+
+.fullw 
+{
+    background-color: #4473c5;
+}
+
+.fullw h2, .fullw p 
+{
+    color: #fff;
+}
+
+.fullw-2
+{
+    background-color: #4473c5;
+    width: 400%;
+    /* padding-left: 19rem; */
+    margin-left: -80rem;
+    padding-top: 10rem;
+    margin-bottom: 10rem;
+}
+
+.fullw-2 h2, .fullw-2 p, .fullw-2 ul 
+{
+    color: #fff;
+}
+
+.fullw-2 .wp-block-column
+{
+    max-width: 80vw;
+    width: 100%;
+    margin: 0 auto 0 16%;
+}
+
+
+.bust-out
+{ 
+    margin: 0 calc(50% - 50vw) 10rem calc(50% - 50vw);
+    background: #4473c5 !important;
+    justify-content: center;
+}
+
+.bust-out div 
+{
+    max-width: 700px;
+}
+
+.kepler-family .bust-out 
+{
+    padding: 10rem;
+    color: #fff;
+}
+
+
+
+.product .wp-block-table td, .product .wp-block-table th
+{
+font-size: 16px
+}
+
+.product .wp-block-table tbody 
+{
+    border-top: 2px solid #000;
+}
+
+.product .wp-block-table 
+{
+    margin: 5rem 0;
+    border-bottom: 2px solid #000;
+}
+
+.product-3block
+{
+    margin-bottom: 70px;
+}
+
+.product-3block .wp-block-image
+{
+margin-bottom: 30px;
+}
+
+/* .product-3block h3 
+{
+    color: #fdb417;
+    font-size: 20px;
+    line-height: 30px;
+    font-weight: 300;
+    margin-bottom: 15px;
+} */
+
+.product-3block p 
+{
+    text-align: center;
+}
+
+.product .awards.section 
+{
+    padding: 6rem 0;
+}
+
+.product .awards p 
+{
+    color: #fff;
+    font-size: 21px;
+    padding-right: 10rem;
+}
+
+.product .awards p a
+{
+    font-size: 21px;
+    color: #fdb417;
+}
+
+.product .awards-right
+{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* .product .download.section h4
+{
+    font-size: 21px;
+    line-height: 30px;
+    margin: 3rem 0;
+    color: #fdb417;
+    font-weight: 300;
+} */
+
+
+
+
+.img-center 
+{
+    text-align: center;
+}
+
+.azure-stack-hci .text-video .text-block
+{
+    flex: 3;
+}
+
+.azure-stack-hci .text-video .video-block
+{
+    flex: 2;
+}
+
+.azure-arc .img-center, .migration-backup .img-center
+{
+text-align: center;
+margin-bottom: 20px;
+}
+
+.img-full
+{
+    text-align: center;
+}
+
+
+.vertical .img-full img
+{
+    width: 90%;
+}
+
+.vertical .img-full figure
+{
+    width: 100%;
+}
+
+
+.img-full img
+{
+    width: 80%;
+    margin: 0 auto;
+}
+
+
+.edge-ai-ml .icon-text img
+{
+    width: 150px;
+    height: 150px;
+}
+
+.edge-ai-ml .icon-text figure
+{
+    text-align: center;
+}
+
+.vertical .bust-out 
+{
+    background: #e8e8e8 !important;
+    padding: 5rem;
+}
+
+.vertical .bust-out div 
+{
+    max-width: 1400px;
+}
+
+
+.media-text.section.it-estate
+{
+    display: flex;
+}
+
+.media-text.section.it-estate .wp-block-column:nth-child(2)
+{
+    align-self: center;
+}
+
+
+.wp-block-media-text.is-stacked-on-mobile h2
+{
+margin-top: 0px;
+}
+
+
+
+.contact figure 
+{
+    text-align: center;
+}
+
+.videos figure 
+{
+    text-align: center;
+    margin-bottom: 7rem;
+}
+
+
+
+.misha_loadmore{
+    background-color: #ddd;
+    border-radius: 2px;
+    display: block;
+    text-align: center;
+    font-size: 14px;
+    font-size: 0.875rem;
+    font-weight: 800;
+    letter-spacing:1px;
+    cursor:pointer;
+    text-transform: uppercase;
+    padding: 10px 0;
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.3s ease-in-out; 
+    min-width: 200px;
+    margin: 0 auto; 
+}
+.misha_loadmore:hover{
+    background-color: #767676;
+    color: #fff;
+}
+
+
+.family-media-text figure 
+{
+margin-bottom: 2rem;
+}
+
+.family-media-text .wp-block-buttons 
+{
+    margin-bottom: 5rem;
+}
+
+.family-products h3 
+{
+    padding: 0 15%;
+    margin-bottom: 0px;
+    font-weight: 500;
+    color: #fdb417;
+}
+
+.family-products p 
+{
+    font-weight: 500;
+}
+
+
+
+
+
+
+.napa-img-adjust
+{
+    margin-top: 3rem !important;
+    margin-bottom: 4rem !important;
+}
+
+
+.azure-stack-hci .icon-text figure img
+{
+    width: 100px;
+}
+
+
+.azure-stack-hci .icon-text .wp-block-column:nth-child(2)
+{
+    align-self: auto;
+}
+
+.nerdio img  
+{
+    max-width: 400px;
+}
+
+.icon-four .icon-text figure 
+{
+    text-align: center;
+}
+
+.icon-four .icon-text figure img 
+{
+    width: 100px;
+}
+
+.page-id-9375 .banner 
+{
+    background-position: right bottom !important;
+}
+
+.dataon-must .icon-text figure 
+{
+    text-align: center;
+}
+
+.dataon-must .icon-text figure img
+{
+    padding: 10px 40px;
+}
+
+
+.aks-hybrid-micro .four-across figure, .three-across figure, .aks-hybrid-micro  .three-across, .aks-hybrid-micro .four-across, .arc-microsoft .four-across figure 
+{
+    text-align: center;
+}
+
+.arc-microsoft .four-across figure img 
+{
+    width: 100px;
+}
+
+.openit figure 
+{
+    position: relative;
+}
+
+.openit figure::before 
+{
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    display: inline-block; 
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    line-height: 1;
+}
+  
+.openit figure::before 
+{
+    font: var(--fa-font-solid);
+    content: "\f14c";
+    position: absolute;
+    bottom: 3px;
+    font-size: 30px;
+    left: 4px;
+    background: #fff;
+    padding: 1px 2px;
+}
+
+
+.video-text div 
+{
+    align-self: center;
+}
+
+.single-product #main 
+{
+
+}
+
+.four-x-four 
+{
+    margin-top: 3rem;
+}
+
+
+
+.page-id-8935 .banner, .page-id-10478 .banner, .page-id-10491 .banner  
+{
+    background-position: right bottom !important;
+}
+
+.int-solutions img, .int-solutions-3 img 
+{
+    width: 100px;
+}
+
+.int-solutions-3 img 
+{
+    filter: brightness(0) invert(1);
+}
+
+.int-solutions p, .int-solutions-include p 
+{
+    padding: 0 60px; 
+}
+
+.int-solutions-include
+{
+    background: #1d56b3;
+    color: #fff;
+    padding: 0 10rem;
+}
+
+.int-solutions-include h2 
+{
+    font-weight: normal;
+    margin: 4rem 0;
+}
+
+.cta-icon img
+{
+    filter: brightness(0) invert(1);
+    margin-bottom: 11px;
+}
+
+.img-padding 
+{
+    padding: 60px 0 30px 0;
+}
+
+.product-container p 
+{
+    padding: 0 3rem;
+}
+
+
+
+.int-solutions-include.bust-out div
+{
+    max-width: 900px;
+}
+
+.no-margin
+{
+    margin: 0 !important;
+}
+
+
+#comments 
+{
+    display: none;
+}
+
+.nav-links 
+{
+    display: flex;
+    justify-content: space-between;
+}
+
+.post .entry-content
+{
+    padding: 0 10rem;
+}
+
+.wp-block-social-links.is-style-logos-only .wp-social-link svg
+{
+    height: 36px;
+    width: 36px;
+}
+
+.azure-stack-hci .four-x-four figure img
+{
+    padding: 0px !important;
+    margin-bottom: 15px;
+    width: 70px;
+}
+
+.azure-stack-hci .three-across figure img 
+{
+    width: 70px; 
+    height: auto;
+}
+
+/* body .is-layout-flex
+{
+    align-items: center !important;
+} */
+
+.wp-block-buttons .learnmore
+{
+    width: 200px !important;
+}
+
+
+
+body .DNS-3block.is-layout-flex 
+{
+    align-items: normal !important;
+}
+
+.vert-3box .wp-block-column, .container-resources .wp-block-column
+{
+    display: flex;
+    flex-direction: column;
+}
+
+.vert-3box .wp-block-column p, .container-resources .wp-block-column h3
+{
+    flex-grow: 5;
+}
+
+body.search article.post, body.search article.page, body.search article.dataon-videos, body.search article
+{
+    padding: 0rem !important;
+    margin-bottom: 7rem;
+}
+
+body.search h2 
+{
+    font-size: 26px;
+}
+
+.cta .cta a 
+{
+    color: #fff; 
+}
+
+.fp-text img 
+{
+	width: 50px;
+	height: 50px;
+}
+
+
+.virtual-experience .three-across 
+{
+    margin-top: 5rem;
+}
+
+.virtual-experience .three-across img 
+{
+    width: auto;
+    max-height: 120px;
+    margin-bottom: 2rem;
+}
+
+.virtual-experience .three-across h3, .virtual-experience .three-across h4
+{
+    color: #fdb417 !important;
+    font-weight: 500;
+}
+
+.virtual-experience .three-across .wp-block-column
+{
+    display: flex;
+    flex-direction: column;
+}
+
+.virtual-experience .three-across.grow h3
+{
+    flex-grow: 1;
+}
+
+.virtual-experience .three-across h3, .virtual-experience .three-across .wp-block-buttons 
+{
+    margin-top: 2rem;
+    justify-content: center;;
+}
+
+.virtual-experience .numbers
+{
+    margin-top: 3rem;
+}
+
+
+.virtual-experience .numbers strong 
+{
+    font-size: 60px;
+    color: #fdb417 !important;
+
+}
+
+.virtual-experience .numbers p 
+{
+    font-size: 20px;
+}
+.virtual-experience .three-across.team img
+{
+    max-height: none;
+    height: auto;
+    width: auto;
+}
+
+.virtual-experience .three-across img
+{
+    width: 96px;
+    height: 96px;
+}
+
+.newsletter input 
+{
+    background: #eee;
+    padding:1rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.newsletter .wpcf7-submit
+{
+    width: 200px;
+    margin-top: 2rem;
+    margin-bottom: 5rem;
+    background: transparent;
+}
+
+.newsletter .news_form
+{
+    margin-top: 5rem;
+}
+
+article.type-dataon-videos
+{
+    padding: 0 20px;
+    margin: 3rem 0;
+}
+
+
+
+.mod-featured-img
+{
+    display: none;
+}
+
+
+.make-switch.virtual-experience .three-across img
+{
+width: 100%;
+height: auto;
+max-height: none;
+
+}
+
+table th.article, table th.date 
+{
+    padding: 2px 10px;
+}
+
+.single-post .post .entry-content 
+{
+    padding: 0px;
+}
+
+
+input.cat-check
+{
+    margin-right: 1rem;
+}
+
+.blog-cats ul li, li.cat-item  
+{
+  font-weight: bold;
+  margin-top: 4rem;
+  list-style: none;
+}
+
+.blog-cats ul li ul li, li.sub-cat .children
+{
+  font-weight: 300;
+  margin: 10px 0px;
+}
+
+li.sub-cat, li.sub-cat .children, li.cat-item .children li
+{
+    padding-left: 2rem;
+    font-weight: 300 !important;
+    margin: 7px 7px !important;
+}
+
+

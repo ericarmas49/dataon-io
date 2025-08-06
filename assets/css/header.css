@@ -1,0 +1,95 @@
+/*---------- Header ----------*/
+.navbar-nav .nav-item {
+    margin: 0;
+    padding: 0;
+}
+.navbar-nav .nav-link {
+    font-size: 14px;
+    color: #fff;
+}
+.navbar-nav .nav-link.active, 
+.navbar-nav .nav-link.show {
+    color: #fff;
+}
+.dropdown-menu {
+    background-color: #fff;
+    box-shadow: 0 10px 10px rgba(0,0,0,0.1);
+}
+.dropdown-menu ul {
+    margin: 0;
+    padding: 0;
+}
+.dropdown-menu .nav-link {
+    color: #000;
+}
+.dropdown-menu .nav-link.active, 
+.dropdown-menu .nav-link.show {
+    color: #000;
+}
+.dropdown-menu h5 {
+    font-size: 15px;
+    color: #000;
+    font-weight: bold;
+}
+.dropdown-megamenu .dropdown-menu .nav-link {
+    padding: 0!important;
+}
+.dropdown-megamenu:hover {
+    position: inherit;
+}
+.dropdown-megamenu:hover .dropdown-toggle {
+    color: #ffb508;
+}
+.dropdown-megamenu:hover .dropdown-menu {
+    display: block;
+    left: 0;
+    right: 0;
+    padding: 2rem;
+    border-radius: 0;
+}
+.megamenu-listgroup {
+    margin: 2rem 0 5rem 0rem;
+}
+.megamenu-listgroup ul {
+    margin: 0;
+    margin-top: 1rem;
+    padding: 0;
+    margin-left: 1rem;
+    border-left: 1px solid #000;
+    padding-left: 10px;
+}
+
+.megamenu-listgroup ul li {
+    margin: 0 0 .5rem;
+    padding: 0;
+    list-style: none;
+}
+
+.megamenu-listgroup ul li a:hover
+{
+    color: #ffb508;
+    transition: 1s;
+}
+
+.dropdown-def .dropdown-menu {
+    border-radius: 0;
+}
+.dropdown-def .dropdown-menu ul {
+    margin-top: 1rem;
+}
+.dropdown-def .dropdown-menu ul li {
+    margin: 0 0 1rem;
+    padding: 0;
+    list-style: none;
+}
+.dropdown-item {
+    font-size: 14px;
+}
+
+.search-field { width: 280px; }
+
+@media (min-width: 1200px) {
+    .navbar-nav .nav-item {
+        padding: 0 1rem;
+    }
+}
