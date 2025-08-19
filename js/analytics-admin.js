@@ -193,70 +193,88 @@ jQuery(document).ready(function($) {
                 nonce: analytics_ajax.nonce
             },
             success: function(response) {
+                console.log('AJAX Response:', response);
+                
                 if (response.success) {
                     renderAnalyticsDashboard(response.data);
                 } else {
-                    showError('Failed to load analytics data');
+                    console.error('AJAX failed:', response);
+                    showError('Failed to load analytics data: ' + (response.data || 'Unknown error'));
                 }
             },
-            error: function() {
-                showError('Failed to connect to analytics service');
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', {xhr, status, error});
+                showError('Failed to connect to analytics service. Status: ' + status + ', Error: ' + error);
             }
         });
     }
     
     // Render the analytics dashboard
     function renderAnalyticsDashboard(data) {
-        const content = `
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-value">${data.page_views.data.reduce((a, b) => a + b, 0).toLocaleString()}</div>
-                    <div class="metric-label">Total Page Views</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${data.top_pages.length}</div>
-                    <div class="metric-label">Active Pages</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${Math.round(data.traffic_sources.data[0] || 0)}%</div>
-                    <div class="metric-label">Organic Traffic</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${data.recent_activity.length}</div>
-                    <div class="metric-label">Recent Events</div>
-                </div>
-            </div>
-            
-            <div class="charts-grid">
-                <div class="chart-container">
-                    <h3>Page Views</h3>
-                    <canvas id="pageViewsChart" class="chart-canvas"></canvas>
+        console.log('Received data:', data);
+        
+        // Check if data has the expected structure
+        if (!data || !data.page_views || !data.page_views.data) {
+            console.error('Invalid data structure received:', data);
+            showError('Invalid data structure received from server. Expected page_views.data but got: ' + JSON.stringify(data));
+            return;
+        }
+        
+        try {
+            const content = `
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">${data.page_views.data.reduce((a, b) => a + b, 0).toLocaleString()}</div>
+                        <div class="metric-label">Total Page Views</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${data.top_pages ? data.top_pages.length : 0}</div>
+                        <div class="metric-label">Active Pages</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${Math.round((data.traffic_sources && data.traffic_sources.data && data.traffic_sources.data[0]) || 0)}%</div>
+                        <div class="metric-label">Organic Traffic</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${data.recent_activity ? data.recent_activity.length : 0}</div>
+                        <div class="metric-label">Recent Events</div>
+                    </div>
                 </div>
                 
-                <div class="chart-container">
-                    <h3>Traffic Sources</h3>
-                    <canvas id="trafficSourcesChart" class="chart-canvas"></canvas>
-                </div>
-            </div>
-            
-            <div class="activity-feed">
-                <h3>Recent Activity</h3>
-                ${data.recent_activity.map(activity => `
-                    <div class="activity-item">
-                        <div class="activity-icon">📊</div>
-                        <div class="activity-content">
-                            <div class="activity-event">${activity.event}</div>
-                            <div class="activity-time">${activity.time} • ${activity.page}</div>
-                        </div>
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>Page Views</h3>
+                        <canvas id="pageViewsChart" class="chart-canvas"></canvas>
                     </div>
-                `).join('')}
-            </div>
-        `;
-        
-        $('#analytics-content').html(content);
-        
-        // Initialize charts
-        renderCharts(data);
+                    
+                    <div class="chart-container">
+                        <h3>Traffic Sources</h3>
+                        <canvas id="trafficSourcesChart" class="chart-canvas"></canvas>
+                    </div>
+                </div>
+                
+                <div class="activity-feed">
+                    <h3>Recent Activity</h3>
+                    ${(data.recent_activity || []).map(activity => `
+                        <div class="activity-item">
+                            <div class="activity-icon">📊</div>
+                            <div class="activity-content">
+                                <div class="activity-event">${activity.event}</div>
+                                <div class="activity-time">${activity.time} • ${activity.page}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            $('#analytics-content').html(content);
+            
+            // Initialize charts
+            renderCharts(data);
+        } catch (error) {
+            console.error('Error rendering dashboard:', error);
+            showError('Error rendering dashboard: ' + error.message);
+        }
     }
     
     // Store chart instances for cleanup
