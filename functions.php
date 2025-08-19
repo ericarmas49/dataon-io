@@ -573,7 +573,15 @@ function generate_sample_analytics_data($period = 'day') {
             'current' => $base_views[$period],
             'previous' => $base_views[$period] * 0.85,
             'change_percent' => 15.2,
-            'trend' => 'up'
+            'trend' => 'up',
+            'labels' => array('Home', 'Products', 'About', 'Contact', 'Blog'),
+            'data' => array(
+                $base_views[$period] * 0.25,
+                $base_views[$period] * 0.18,
+                $base_views[$period] * 0.15,
+                $base_views[$period] * 0.12,
+                $base_views[$period] * 0.10
+            )
         ),
         'real_time_users' => rand(5, 25),
         'top_pages' => array(
@@ -589,11 +597,15 @@ function generate_sample_analytics_data($period = 'day') {
             array('page' => '/careers/', 'views' => $base_views[$period] * 0.02, 'bounce_rate' => 60)
         ),
         'traffic_sources' => array(
-            array('source' => 'Organic Search', 'sessions' => 45, 'percentage' => 45),
-            array('source' => 'Direct', 'sessions' => 25, 'percentage' => 25),
-            array('source' => 'Social', 'sessions' => 15, 'percentage' => 15),
-            array('source' => 'Referral', 'sessions' => 10, 'percentage' => 10),
-            array('source' => 'Email', 'sessions' => 5, 'percentage' => 5)
+            'labels' => array('Organic Search', 'Direct', 'Social', 'Referral', 'Email'),
+            'data' => array(45, 25, 15, 10, 5),
+            'sources' => array(
+                array('source' => 'Organic Search', 'sessions' => 45, 'percentage' => 45),
+                array('source' => 'Direct', 'sessions' => 25, 'percentage' => 25),
+                array('source' => 'Social', 'sessions' => 15, 'percentage' => 15),
+                array('source' => 'Referral', 'sessions' => 10, 'percentage' => 10),
+                array('source' => 'Email', 'sessions' => 5, 'percentage' => 5)
+            )
         ),
         'pdf_downloads' => array(
             array('file' => 'DataON-HCI-Solution-Guide.pdf', 'downloads' => 156, 'last_download' => '2 hours ago'),
