@@ -1293,7 +1293,7 @@ jQuery(document).ready(function($) {
                                 </tr>
                             </thead>
                             <tbody>
-                                ${data.traffic_sources.map(source => `
+                                ${data.traffic_sources.sources.map(source => `
                                     <tr>
                                         <td>${source.source}</td>
                                         <td>${source.sessions}</td>
@@ -1420,9 +1420,9 @@ jQuery(document).ready(function($) {
             new Chart(trafficSourcesCtx.getContext('2d'), {
                 type: 'doughnut',
                 data: {
-                    labels: data.traffic_sources.map(s => s.source),
+                    labels: data.traffic_sources.labels,
                     datasets: [{
-                        data: data.traffic_sources.map(s => s.percentage),
+                        data: data.traffic_sources.data,
                         backgroundColor: [
                             'rgba(102, 126, 234, 0.8)',
                             'rgba(118, 75, 162, 0.8)',
