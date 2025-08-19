@@ -213,6 +213,14 @@ jQuery(document).ready(function($) {
     // Render the analytics dashboard
     function renderAnalyticsDashboard(data) {
         console.log('Received data:', data);
+        console.log('Data structure check:', {
+            hasData: !!data,
+            hasPageViews: !!(data && data.page_views),
+            hasPageViewsData: !!(data && data.page_views && data.page_views.data),
+            hasTrafficSources: !!(data && data.traffic_sources),
+            trafficSourcesType: data && data.traffic_sources ? typeof data.traffic_sources : 'undefined',
+            trafficSourcesKeys: data && data.traffic_sources ? Object.keys(data.traffic_sources) : 'undefined'
+        });
         
         // Check if data has the expected structure
         if (!data || !data.page_views || !data.page_views.data) {
@@ -233,7 +241,7 @@ jQuery(document).ready(function($) {
                         <div class="metric-label">Active Pages</div>
                     </div>
                     <div class="metric-card">
-                        <div class="metric-value">${Math.round((data.traffic_sources && data.traffic_sources.data && data.traffic_sources.data[0]) || 0)}%</div>
+                        <div class="metric-value">${Math.round((data.traffic_sources && data.traffic_sources.data && Array.isArray(data.traffic_sources.data) && data.traffic_sources.data[0]) || 0)}%</div>
                         <div class="metric-label">Organic Traffic</div>
                     </div>
                     <div class="metric-card">
@@ -338,7 +346,8 @@ jQuery(document).ready(function($) {
         
         // Traffic Sources Chart
         const trafficSourcesCtx = document.getElementById('trafficSourcesChart');
-        if (trafficSourcesCtx) {
+        if (trafficSourcesCtx && data.traffic_sources && data.traffic_sources.labels && data.traffic_sources.data && 
+            Array.isArray(data.traffic_sources.labels) && Array.isArray(data.traffic_sources.data)) {
             // Reset canvas height
             trafficSourcesCtx.style.height = '300px';
             trafficSourcesCtx.height = 300;
