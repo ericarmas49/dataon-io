@@ -423,8 +423,8 @@ jQuery(document).ready(function($) {
     
     // Check if we're on a production domain with proper credentials
     const isLocalhost = window.location.hostname === 'localhost' || 
-                       window.location.hostname.includes('local') ||
-                       window.location.hostname.includes('dataon');
+                       window.location.hostname.includes('.local') ||
+                       window.location.hostname.includes('127.0.0.1');
     
     const hasCredentials = GA_API_CONFIG.apiKey && GA_API_CONFIG.clientId && GA_API_CONFIG.propertyId;
     
