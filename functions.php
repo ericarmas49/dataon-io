@@ -525,10 +525,11 @@ function analytics_admin_scripts( $hook ) {
         return;
     }
     
-    wp_enqueue_script( 'google-analytics-api', 'https://apis.google.com/js/api.js', array(), null, true );
+    wp_enqueue_script( 'google-identity-services', 'https://accounts.google.com/gsi/client', array(), null, true );
     wp_enqueue_script( 'chart-js', 'https://cdn.jsdelivr.net/npm/chart.js', array(), '3.9.1', true );
     wp_enqueue_script( 'analytics-config', get_template_directory_uri() . '/js/analytics-config.js', array(), '1.0', true );
-    wp_enqueue_script( 'analytics-admin', get_template_directory_uri() . '/js/analytics-admin.js', array( 'jquery', 'google-analytics-api', 'chart-js', 'analytics-config' ), '1.0', true );
+    wp_enqueue_script( 'analytics-admin', get_template_directory_uri() . '/js/analytics-admin.js', array( 'jquery', 'google-identity-services', 'chart-js', 'analytics-config' ), '1.0', true );
+    wp_enqueue_script( 'analytics-test', get_template_directory_uri() . '/js/analytics-test.js', array( 'jquery', 'analytics-admin' ), '1.0', true );
     
     // Pass AJAX URL and nonce to JavaScript
     wp_localize_script( 'analytics-admin', 'analytics_ajax', array(

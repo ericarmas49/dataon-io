@@ -13,7 +13,7 @@ jQuery(document).ready(function($) {
         scopes: ['https://www.googleapis.com/auth/analytics.readonly']
     };
     
-    // Initialize Google Analytics API
+    // Initialize Google Analytics API using new Google Identity Services
     function initGoogleAnalytics() {
         // Check if credentials are configured
         if (!GA_API_CONFIG.apiKey || !GA_API_CONFIG.clientId || !GA_API_CONFIG.viewId) {
@@ -22,40 +22,41 @@ jQuery(document).ready(function($) {
             return;
         }
         
-        gapi.load('client:auth2', function() {
-            gapi.client.init({
-                apiKey: GA_API_CONFIG.apiKey,
-                clientId: GA_API_CONFIG.clientId,
-                scope: GA_API_CONFIG.scopes.join(' ')
-            }).then(function() {
-                // Check if user is signed in
-                if (!gapi.auth2.getAuthInstance().isSignedIn.get()) {
-                    gapi.auth2.getAuthInstance().signIn();
+        // Check if Google Identity Services is loaded
+        if (typeof google === 'undefined' || !google.accounts) {
+            console.error('Google Identity Services not loaded');
+            showError('Google Identity Services failed to load. Please refresh the page.');
+            loadSampleData();
+            return;
+        }
+        
+        try {
+            // Initialize Google Identity Services
+            google.accounts.oauth2.initTokenClient({
+                client_id: GA_API_CONFIG.clientId,
+                scope: GA_API_CONFIG.scopes.join(' '),
+                callback: function(tokenResponse) {
+                    console.log('OAuth token received:', tokenResponse);
+                    if (tokenResponse.access_token) {
+                        // Token received, now load analytics data
+                        loadAnalyticsData();
+                    } else {
+                        console.error('No access token received');
+                        loadSampleData();
+                    }
+                },
+                error_callback: function(error) {
+                    console.error('OAuth error:', error);
+                    showError(`OAuth Error: ${error.error || 'Unknown error'}`);
+                    loadSampleData();
                 }
-                loadAnalyticsData();
-            }).catch(function(error) {
-                console.error('Google Analytics API initialization failed:', error);
-                
-                // Show specific error message for origin issues
-                if (error.error === 'idpiframe_initialization_failed') {
-                    showError(`
-                        <strong>Google Analytics API Error:</strong> Origin not authorized<br><br>
-                        <strong>To fix this:</strong><br>
-                        1. Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a><br>
-                        2. Navigate to APIs & Services > Credentials<br>
-                        3. Edit your OAuth 2.0 Client ID<br>
-                        4. Add this domain to "Authorized JavaScript origins":<br>
-                        <code>${window.location.origin}</code><br>
-                        5. Save and try again
-                    `);
-                } else {
-                    showError(`Google Analytics API Error: ${error.error || 'Unknown error'}`);
-                }
-                
-                // Fallback to sample data
-                loadSampleData();
-            });
-        });
+            }).requestAccessToken();
+            
+        } catch (error) {
+            console.error('Google Identity Services initialization failed:', error);
+            showError(`Google Identity Services Error: ${error.message}`);
+            loadSampleData();
+        }
     }
     
     // Load analytics data from Google Analytics
@@ -413,16 +414,18 @@ jQuery(document).ready(function($) {
     if (isLocalhost) {
         console.log('Local development detected. Using sample data.');
         loadSampleData();
-    } else if (typeof gapi !== 'undefined') {
+    } else if (typeof google !== 'undefined' && google.accounts) {
         initGoogleAnalytics();
     } else {
-        // Fallback to sample data if Google Analytics API is not available
+        // Fallback to sample data if Google Identity Services is not available
         loadSampleData();
     }
     
     // Refresh data every 5 minutes
     refreshInterval = setInterval(function() {
-        if (typeof gapi !== 'undefined' && gapi.auth2 && gapi.auth2.getAuthInstance().isSignedIn.get()) {
+        // For now, just refresh sample data
+        // In the future, we can implement token refresh logic
+        if (typeof google !== 'undefined' && google.accounts) {
             loadAnalyticsData();
         }
     }, 300000); // 5 minutes

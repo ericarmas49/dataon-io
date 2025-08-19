@@ -23,6 +23,21 @@ window.GA_CONFIG = {
     // Measurement Protocol API Secret (for GA4)
     measurementProtocolSecret: '',
     
+    // Service Account Configuration (Alternative to OAuth)
+    serviceAccount: {
+        // Enable service account authentication
+        enabled: false,
+        
+        // Service account email (from Google Cloud Console)
+        clientEmail: '',
+        
+        // Private key (from service account JSON file)
+        privateKey: '',
+        
+        // Project ID
+        projectId: ''
+    },
+    
     // Custom dimensions (optional)
     customDimensions: {
         // Add any custom dimensions you want to track
@@ -67,4 +82,11 @@ IMPORTANT: Add this domain to authorized origins in Google Cloud Console:
 NOTE: For local development, the dashboard will automatically use sample data.
 For production, add your actual domain (like https://yourdomain.com) to the
 authorized origins in Google Cloud Console.
+
+ALTERNATIVE SETUP - Service Account (if OAuth fails):
+1. Go to Google Cloud Console > IAM & Admin > Service Accounts
+2. Create a new service account
+3. Download the JSON key file
+4. Enable service account in config above
+5. Add the service account email to your Google Analytics property
 */ 
