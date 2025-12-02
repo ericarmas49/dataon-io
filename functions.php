@@ -538,6 +538,152 @@ function analytics_admin_scripts( $hook ) {
     ));
 }
 
+// Include GA4 Analytics class
+require_once get_template_directory() . '/includes/class-ga4-analytics.php';
+
+// Add Google Analytics settings page
+add_action('admin_menu', 'add_ga4_settings_page');
+function add_ga4_settings_page() {
+    add_options_page(
+        'Google Analytics Settings',
+        'Google Analytics',
+        'manage_options',
+        'ga4-settings',
+        'ga4_settings_page'
+    );
+}
+
+function ga4_settings_page() {
+    if (isset($_POST['submit'])) {
+        update_option('ga4_enabled', isset($_POST['ga4_enabled']));
+        update_option('ga4_api_key', sanitize_text_field($_POST['ga4_api_key']));
+        update_option('ga4_property_id', sanitize_text_field($_POST['ga4_property_id']));
+        update_option('ga4_measurement_id', sanitize_text_field($_POST['ga4_measurement_id']));
+        update_option('ga4_service_account_email', sanitize_email($_POST['ga4_service_account_email']));
+        update_option('ga4_private_key', sanitize_textarea_field($_POST['ga4_private_key']));
+        update_option('ga4_project_id', sanitize_text_field($_POST['ga4_project_id']));
+        
+        echo '<div class="notice notice-success"><p>Settings saved successfully!</p></div>';
+    }
+    
+    $ga4_enabled = get_option('ga4_enabled', false);
+    $ga4_api_key = get_option('ga4_api_key', '');
+    $ga4_property_id = get_option('ga4_property_id', '');
+    $ga4_measurement_id = get_option('ga4_measurement_id', '');
+    $ga4_service_account_email = get_option('ga4_service_account_email', '');
+    $ga4_private_key = get_option('ga4_private_key', '');
+    $ga4_project_id = get_option('ga4_project_id', '');
+    ?>
+    <div class="wrap">
+        <h1>Google Analytics 4 Settings</h1>
+        <form method="post" action="">
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Enable GA4 Integration</th>
+                    <td>
+                        <input type="checkbox" name="ga4_enabled" value="1" <?php checked($ga4_enabled); ?> />
+                        <p class="description">Enable live Google Analytics data integration</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">API Key</th>
+                    <td>
+                        <input type="text" name="ga4_api_key" value="<?php echo esc_attr($ga4_api_key); ?>" class="regular-text" />
+                        <p class="description">Google Cloud Console API Key</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Property ID</th>
+                    <td>
+                        <input type="text" name="ga4_property_id" value="<?php echo esc_attr($ga4_property_id); ?>" class="regular-text" />
+                        <p class="description">GA4 Property ID (numeric, e.g., 123456789)</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Measurement ID</th>
+                    <td>
+                        <input type="text" name="ga4_measurement_id" value="<?php echo esc_attr($ga4_measurement_id); ?>" class="regular-text" />
+                        <p class="description">GA4 Measurement ID (e.g., G-XXXXXXXXXX)</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Service Account Email</th>
+                    <td>
+                        <input type="email" name="ga4_service_account_email" value="<?php echo esc_attr($ga4_service_account_email); ?>" class="regular-text" />
+                        <p class="description">Service account email from Google Cloud Console</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Private Key</th>
+                    <td>
+                        <textarea name="ga4_private_key" rows="5" cols="50" class="large-text"><?php echo esc_textarea($ga4_private_key); ?></textarea>
+                        <p class="description">Private key from service account JSON file (include -----BEGIN PRIVATE KEY----- and -----END PRIVATE KEY-----)</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Project ID</th>
+                    <td>
+                        <input type="text" name="ga4_project_id" value="<?php echo esc_attr($ga4_project_id); ?>" class="regular-text" />
+                        <p class="description">Google Cloud Project ID</p>
+                    </td>
+                </tr>
+            </table>
+            
+            <?php submit_button(); ?>
+        </form>
+        
+        <?php if ($ga4_enabled && !empty($ga4_property_id)): ?>
+        <h2>Test Connection</h2>
+        <p>
+            <button type="button" id="test-ga4-connection" class="button">Test GA4 Connection</button>
+            <span id="connection-status"></span>
+        </p>
+        <script>
+        jQuery(document).ready(function($) {
+            $('#test-ga4-connection').click(function() {
+                var button = $(this);
+                var status = $('#connection-status');
+                
+                button.prop('disabled', true).text('Testing...');
+                status.html('');
+                
+                $.post(ajaxurl, {
+                    action: 'test_ga4_connection',
+                    nonce: '<?php echo wp_create_nonce('ga4_test_nonce'); ?>'
+                }, function(response) {
+                    if (response.success) {
+                        status.html('<span style="color: green;">✅ ' + response.data.message + '</span>');
+                    } else {
+                        status.html('<span style="color: red;">❌ ' + response.data.message + '</span>');
+                    }
+                }).fail(function() {
+                    status.html('<span style="color: red;">❌ Connection test failed</span>');
+                }).always(function() {
+                    button.prop('disabled', false).text('Test GA4 Connection');
+                });
+            });
+        });
+        </script>
+        <?php endif; ?>
+    </div>
+    <?php
+}
+
+// AJAX handler for testing GA4 connection
+add_action('wp_ajax_test_ga4_connection', 'test_ga4_connection');
+function test_ga4_connection() {
+    check_ajax_referer('ga4_test_nonce', 'nonce');
+    
+    $ga4 = new GA4_Analytics();
+    $result = $ga4->test_connection();
+    
+    if ($result['success']) {
+        wp_send_json_success($result);
+    } else {
+        wp_send_json_error($result);
+    }
+}
+
 // AJAX handler for analytics data
 add_action( 'wp_ajax_get_analytics_data', 'get_analytics_data' );
 function get_analytics_data() {
@@ -545,99 +691,29 @@ function get_analytics_data() {
     
     $period = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : 'day';
     
-    // Generate comprehensive sample data
-    $data = generate_sample_analytics_data($period);
+    // Check if GA4 is configured
+    $ga4_enabled = get_option('ga4_enabled', false);
+    $ga4_property_id = get_option('ga4_property_id', '');
     
-    wp_send_json_success( $data );
+    if ($ga4_enabled && !empty($ga4_property_id)) {
+        // Try to get live data from GA4
+        $ga4 = new GA4_Analytics();
+        $live_data = $ga4->get_analytics_data($period);
+        
+        if ($live_data && $live_data['connection_status'] === 'connected') {
+            wp_send_json_success($live_data);
+        } else {
+            // Return error if GA4 fails - NO sample data
+            error_log('GA4 Analytics failed, returning error');
+            wp_send_json_error('Failed to connect to Google Analytics. Please check your GA4 configuration.');
+        }
+    } else {
+        // Return error if GA4 not configured - NO sample data
+        wp_send_json_error('Google Analytics 4 not configured. Please set up GA4 credentials.');
+    }
 }
 
-function generate_sample_analytics_data($period = 'day') {
-    $base_views = array(
-        'day' => 1200,
-        'week' => 8500,
-        'month' => 35000,
-        'all_time' => 125000
-    );
-    
-    $base_users = array(
-        'day' => 450,
-        'week' => 3200,
-        'month' => 12500,
-        'all_time' => 45000
-    );
-    
-    return array(
-        'connection_status' => 'sample_data', // 'connected', 'sample_data', 'error'
-        'period' => $period,
-        'page_views' => array(
-            'current' => $base_views[$period],
-            'previous' => $base_views[$period] * 0.85,
-            'change_percent' => 15.2,
-            'trend' => 'up',
-            'labels' => array('Home', 'Products', 'About', 'Contact', 'Blog'),
-            'data' => array(
-                $base_views[$period] * 0.25,
-                $base_views[$period] * 0.18,
-                $base_views[$period] * 0.15,
-                $base_views[$period] * 0.12,
-                $base_views[$period] * 0.10
-            )
-        ),
-        'real_time_users' => rand(5, 25),
-        'top_pages' => array(
-            array('page' => '/', 'views' => $base_views[$period] * 0.25, 'bounce_rate' => 35),
-            array('page' => '/products/', 'views' => $base_views[$period] * 0.18, 'bounce_rate' => 42),
-            array('page' => '/about/', 'views' => $base_views[$period] * 0.15, 'bounce_rate' => 28),
-            array('page' => '/contact/', 'views' => $base_views[$period] * 0.12, 'bounce_rate' => 55),
-            array('page' => '/blog/', 'views' => $base_views[$period] * 0.10, 'bounce_rate' => 38),
-            array('page' => '/downloads/', 'views' => $base_views[$period] * 0.08, 'bounce_rate' => 45),
-            array('page' => '/support/', 'views' => $base_views[$period] * 0.07, 'bounce_rate' => 32),
-            array('page' => '/pricing/', 'views' => $base_views[$period] * 0.05, 'bounce_rate' => 48),
-            array('page' => '/news/', 'views' => $base_views[$period] * 0.03, 'bounce_rate' => 25),
-            array('page' => '/careers/', 'views' => $base_views[$period] * 0.02, 'bounce_rate' => 60)
-        ),
-        'traffic_sources' => array(
-            'labels' => array('Organic Search', 'Direct', 'Social', 'Referral', 'Email'),
-            'data' => array(45, 25, 15, 10, 5),
-            'sources' => array(
-                array('source' => 'Organic Search', 'sessions' => 45, 'percentage' => 45),
-                array('source' => 'Direct', 'sessions' => 25, 'percentage' => 25),
-                array('source' => 'Social', 'sessions' => 15, 'percentage' => 15),
-                array('source' => 'Referral', 'sessions' => 10, 'percentage' => 10),
-                array('source' => 'Email', 'sessions' => 5, 'percentage' => 5)
-            )
-        ),
-        'pdf_downloads' => array(
-            array('file' => 'DataON-HCI-Solution-Guide.pdf', 'downloads' => 156, 'last_download' => '2 hours ago'),
-            array('file' => 'Azure-Stack-HCI-Datasheet.pdf', 'downloads' => 89, 'last_download' => '1 hour ago'),
-            array('file' => 'Storage-Solutions-Whitepaper.pdf', 'downloads' => 67, 'last_download' => '3 hours ago'),
-            array('file' => 'Performance-Benchmarks.pdf', 'downloads' => 43, 'last_download' => '5 hours ago'),
-            array('file' => 'Deployment-Guide.pdf', 'downloads' => 34, 'last_download' => '1 day ago'),
-            array('file' => 'Troubleshooting-Manual.pdf', 'downloads' => 28, 'last_download' => '2 days ago'),
-            array('file' => 'Security-Protocols.pdf', 'downloads' => 22, 'last_download' => '3 days ago'),
-            array('file' => 'Integration-Guide.pdf', 'downloads' => 19, 'last_download' => '4 days ago'),
-            array('file' => 'Best-Practices.pdf', 'downloads' => 15, 'last_download' => '1 week ago'),
-            array('file' => 'Case-Study-Enterprise.pdf', 'downloads' => 12, 'last_download' => '1 week ago')
-        ),
-        'trending_insights' => array(
-            array('type' => 'spike', 'title' => 'Traffic Spike', 'description' => '50% increase in organic traffic from "hyper-converged infrastructure" searches', 'impact' => 'high'),
-            array('type' => 'trend', 'title' => 'PDF Downloads Up', 'description' => 'DataON-HCI-Solution-Guide.pdf downloads increased 25% this week', 'impact' => 'medium'),
-            array('type' => 'source', 'title' => 'New Traffic Source', 'description' => 'LinkedIn referrals increased 40% in the last 7 days', 'impact' => 'medium'),
-            array('type' => 'page', 'title' => 'Product Page Performance', 'description' => '/products/ page bounce rate dropped 15% after recent updates', 'impact' => 'high'),
-            array('type' => 'device', 'title' => 'Mobile Usage', 'description' => 'Mobile traffic increased 30% compared to last month', 'impact' => 'medium')
-        ),
-        'recent_activity' => array(
-            array('time' => '2 minutes ago', 'event' => 'PDF Download', 'page' => '/downloads/', 'file' => 'DataON-HCI-Solution-Guide.pdf'),
-            array('time' => '5 minutes ago', 'event' => 'Form Submission', 'page' => '/contact/', 'details' => 'Contact form submitted'),
-            array('time' => '8 minutes ago', 'event' => 'Page View', 'page' => '/products/', 'details' => 'Product page viewed'),
-            array('time' => '12 minutes ago', 'event' => 'Email Signup', 'page' => '/newsletter/', 'details' => 'Newsletter subscription'),
-            array('time' => '15 minutes ago', 'event' => 'PDF Download', 'page' => '/downloads/', 'file' => 'Azure-Stack-HCI-Datasheet.pdf'),
-            array('time' => '18 minutes ago', 'event' => 'Page View', 'page' => '/about/', 'details' => 'About page viewed'),
-            array('time' => '22 minutes ago', 'event' => 'Form Submission', 'page' => '/support/', 'details' => 'Support ticket submitted'),
-            array('time' => '25 minutes ago', 'event' => 'Page View', 'page' => '/blog/', 'details' => 'Blog post viewed')
-        )
-    );
-}
+// Sample data generation function removed - only real GA4 data will be used
 
 function myplguin_admin_page(){
 	?>
@@ -1036,6 +1112,46 @@ function myplguin_admin_page(){
         border-bottom-color: transparent;
     }
 }
+
+/* Unavailable data styling */
+.unavailable-data {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background: #fff5f5;
+    border: 2px solid #dc3545;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+.unavailable-icon {
+    font-size: 20px;
+    margin-right: 10px;
+    color: #dc3545;
+}
+
+.unavailable-message {
+    color: #dc3545;
+    font-weight: bold;
+    margin: 0;
+}
+
+.unavailable-note {
+    color: #6c757d;
+    font-style: italic;
+    margin: 5px 0 0 0;
+    font-size: 12px;
+}
+
+.no-data {
+    padding: 20px;
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+    background: #f8f9fa;
+    border-radius: 5px;
+    margin: 10px 0;
+}
 </style>
 
 <div class="wrap analytics-dashboard">
@@ -1044,11 +1160,12 @@ function myplguin_admin_page(){
             <h1>Analytics Dashboard</h1>
             <p>Comprehensive insights and real-time data</p>
         </div>
-        <div class="connection-status sample" id="connection-status">
-            <span>📊 Sample Data</span>
+        <div class="connection-status" id="connection-status">
+            <span>🔄 Loading...</span>
         </div>
     </div>
 
+    <!-- 
     <div class="metrics-grid">
         <div class="metric-card">
             <div class="metric-value" id="page-views-value">--</div>
@@ -1073,6 +1190,7 @@ function myplguin_admin_page(){
             <div class="metric-change negative" id="bounce-rate-change">-2.1%</div>
         </div>
     </div>
+    -->
 
     <div class="tab-navigation">
         <button class="tab-button active" data-tab="overview">Overview</button>
@@ -1084,384 +1202,28 @@ function myplguin_admin_page(){
     </div>
 
     <div id="analytics-content">
-        <div class="loading">Loading analytics data...</div>
+        <!-- Completely empty - being rebuilt -->
     </div>
 </div>
 
 <script>
-jQuery(document).ready(function($) {
-    let currentPeriod = 'day';
-    let currentTab = 'overview';
-    
-    // Initialize dashboard
-    loadAnalyticsData();
-    
-    // Tab navigation
-    $('.tab-button').on('click', function() {
-        $('.tab-button').removeClass('active');
-        $(this).addClass('active');
-        currentTab = $(this).data('tab');
-        loadAnalyticsData();
-    });
-    
-    // Period filters
-    $(document).on('click', '.period-button', function() {
-        $('.period-button').removeClass('active');
-        $(this).addClass('active');
-        currentPeriod = $(this).data('period');
-        loadAnalyticsData();
-    });
-    
-    function loadAnalyticsData() {
-        $.ajax({
-            url: analytics_ajax.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'get_analytics_data',
-                nonce: analytics_ajax.nonce,
-                period: currentPeriod
-            },
-            success: function(response) {
-                if (response.success) {
-                    renderAnalyticsDashboard(response.data);
-                } else {
-                    showError('Failed to load analytics data');
-                }
-            },
-            error: function() {
-                showError('Failed to connect to analytics service');
-            }
-        });
-    }
-    
-    function renderAnalyticsDashboard(data) {
-        updateMetrics(data);
-        updateConnectionStatus(data.connection_status);
-        
-        const content = renderTabContent(data, currentTab);
-        $('#analytics-content').html(content);
-        
-        if (currentTab === 'overview') {
-            renderOverviewCharts(data);
-        }
-    }
-    
-    function updateMetrics(data) {
-        $('#page-views-value').text(data.page_views.current.toLocaleString());
-        $('#real-time-users').text(data.real_time_users);
-        $('#unique-users').text(Math.round(data.page_views.current * 0.4).toLocaleString());
-        $('#bounce-rate').text('42.5%');
-        
-        $('#page-views-change').text('+' + data.page_views.change_percent + '%');
-        $('#unique-users-change').text('+8.5%');
-        $('#bounce-rate-change').text('-2.1%');
-    }
-    
-    function updateConnectionStatus(status) {
-        const statusElement = $('#connection-status');
-        statusElement.removeClass('connected sample error');
-        
-        switch(status) {
-            case 'connected':
-                statusElement.addClass('connected').html('<span>✅ Connected to Google Analytics</span>');
-                break;
-            case 'sample_data':
-                statusElement.addClass('sample').html('<span>📊 Sample Data</span>');
-                break;
-            case 'error':
-                statusElement.addClass('error').html('<span>❌ Connection Error</span>');
-                break;
-        }
-    }
-    
-    function renderTabContent(data, tab) {
-        switch(tab) {
-            case 'overview':
-                return renderOverviewTab(data);
-            case 'pages':
-                return renderPagesTab(data);
-            case 'traffic':
-                return renderTrafficTab(data);
-            case 'downloads':
-                return renderDownloadsTab(data);
-            case 'insights':
-                return renderInsightsTab(data);
-            case 'activity':
-                return renderActivityTab(data);
-            default:
-                return renderOverviewTab(data);
-        }
-    }
-    
-    function renderOverviewTab(data) {
-        return `
-            <div class="tab-content active">
-                <div class="period-filters">
-                    <button class="period-button active" data-period="day">Day</button>
-                    <button class="period-button" data-period="week">Week</button>
-                    <button class="period-button" data-period="month">Month</button>
-                    <button class="period-button" data-period="all_time">All Time</button>
-                </div>
-                
-                <div class="charts-grid">
-                    <div class="chart-container">
-                        <h3>Page Views Trend</h3>
-                        <canvas id="pageViewsChart" class="chart-canvas"></canvas>
-                    </div>
-                    
-                    <div class="chart-container">
-                        <h3>Traffic Sources</h3>
-                        <canvas id="trafficSourcesChart" class="chart-canvas"></canvas>
-                    </div>
-                </div>
-                
-                <div class="insights-grid">
-                    ${data.trending_insights.slice(0, 3).map(insight => `
-                        <div class="insight-card ${insight.impact}-impact">
-                            <div class="insight-title">${insight.title}</div>
-                            <div class="insight-description">${insight.description}</div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-    
-    function renderPagesTab(data) {
-        return `
-            <div class="tab-content active">
-                <div class="period-filters">
-                    <button class="period-button active" data-period="day">Day</button>
-                    <button class="period-button" data-period="week">Week</button>
-                    <button class="period-button" data-period="month">Month</button>
-                    <button class="period-button" data-period="all_time">All Time</button>
-                </div>
-                
-                <div class="chart-container">
-                    <h3>Top 10 Pages</h3>
-                    <canvas id="topPagesChart" class="chart-canvas"></canvas>
-                </div>
-                
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Page</th>
-                            <th>Views</th>
-                            <th>Bounce Rate</th>
-                            <th>Avg. Time</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${data.top_pages.map(page => `
-                            <tr>
-                                <td>${page.page}</td>
-                                <td>${page.views.toLocaleString()}</td>
-                                <td>${page.bounce_rate}%</td>
-                                <td>${Math.floor(Math.random() * 5) + 1}m ${Math.floor(Math.random() * 60)}s</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
-    }
-    
-    function renderTrafficTab(data) {
-        return `
-            <div class="tab-content active">
-                <div class="period-filters">
-                    <button class="period-button active" data-period="day">Day</button>
-                    <button class="period-button" data-period="week">Week</button>
-                    <button class="period-button" data-period="month">Month</button>
-                    <button class="period-button" data-period="all_time">All Time</button>
-                </div>
-                
-                <div class="charts-grid">
-                    <div class="chart-container">
-                        <h3>Traffic Sources Breakdown</h3>
-                        <canvas id="trafficBreakdownChart" class="chart-canvas"></canvas>
-                    </div>
-                    
-                    <div class="chart-container">
-                        <h3>Source Performance</h3>
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Source</th>
-                                    <th>Sessions</th>
-                                    <th>%</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${data.traffic_sources.sources.map(source => `
-                                    <tr>
-                                        <td>${source.source}</td>
-                                        <td>${source.sessions}</td>
-                                        <td>${source.percentage}%</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    function renderDownloadsTab(data) {
-        return `
-            <div class="tab-content active">
-                <div class="period-filters">
-                    <button class="period-button active" data-period="day">Day</button>
-                    <button class="period-button" data-period="week">Week</button>
-                    <button class="period-button" data-period="month">Month</button>
-                    <button class="period-button" data-period="all_time">All Time</button>
-                </div>
-                
-                <div class="chart-container">
-                    <h3>PDF Download Trends</h3>
-                    <canvas id="pdfDownloadsChart" class="chart-canvas"></canvas>
-                </div>
-                
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>PDF File</th>
-                            <th>Downloads</th>
-                            <th>Last Download</th>
-                            <th>Trend</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${data.pdf_downloads.map(pdf => `
-                            <tr>
-                                <td>${pdf.file}</td>
-                                <td>${pdf.downloads}</td>
-                                <td>${pdf.last_download}</td>
-                                <td>
-                                    <span class="metric-change positive">+${Math.floor(Math.random() * 20) + 5}%</span>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
-    }
-    
-    function renderInsightsTab(data) {
-        return `
-            <div class="tab-content active">
-                <h3>Trending Insights & Anomalies</h3>
-                
-                <div class="insights-grid">
-                    ${data.trending_insights.map(insight => `
-                        <div class="insight-card ${insight.impact}-impact">
-                            <div class="insight-title">${insight.title}</div>
-                            <div class="insight-description">${insight.description}</div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-    
-    function renderActivityTab(data) {
-        return `
-            <div class="tab-content active">
-                <h3>Recent Activity Feed</h3>
-                
-                <div class="activity-feed">
-                    ${data.recent_activity.map(activity => `
-                        <div class="activity-item">
-                            <div class="activity-icon">📊</div>
-                            <div class="activity-content">
-                                <div class="activity-event">${activity.event}</div>
-                                <div class="activity-time">${activity.time} • ${activity.page}${activity.file ? ' • ' + activity.file : ''}</div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-    
-    function renderOverviewCharts(data) {
-        // Page Views Chart
-        const pageViewsCtx = document.getElementById('pageViewsChart');
-        if (pageViewsCtx) {
-            new Chart(pageViewsCtx.getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                    datasets: [{
-                        label: 'Page Views',
-                        data: [1200, 1350, 1100, 1400, 1600, 1800, 1500],
-                        borderColor: 'rgba(102, 126, 234, 1)',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Traffic Sources Chart
-        const trafficSourcesCtx = document.getElementById('trafficSourcesChart');
-        if (trafficSourcesCtx) {
-            new Chart(trafficSourcesCtx.getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: data.traffic_sources.labels,
-                    datasets: [{
-                        data: data.traffic_sources.data,
-                        backgroundColor: [
-                            'rgba(102, 126, 234, 0.8)',
-                            'rgba(118, 75, 162, 0.8)',
-                            'rgba(255, 193, 7, 0.8)',
-                            'rgba(40, 167, 69, 0.8)',
-                            'rgba(220, 53, 69, 0.8)'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-        }
-    }
-    
-    function showError(message) {
-        $('#analytics-content').html(`
-            <div class="error-message">
-                <strong>Error:</strong> ${message}
-            </div>
-        `);
-    }
-    
-    // Auto-refresh real-time data every 30 seconds
-    setInterval(function() {
-        $('#real-time-users').text(Math.floor(Math.random() * 20) + 5);
-    }, 30000);
-});
+// All analytics JavaScript completely removed - being rebuilt from scratch
 </script>
 
 <?php 
 }
 
 
+add_action('wp_ajax_filter_documents', 'filter_documents');
+add_action('wp_ajax_nopriv_filter_documents', 'filter_documents');
 
 
-
+add_filter('use_block_editor_for_post_type', 'prefix_disable_gutenberg', 10, 2);
+function prefix_disable_gutenberg($current_status, $post_type)
+{
+    if ($post_type === 'knowledge-base') return false;
+    return $current_status;
+}
 function misha_my_load_more_scripts() {
  
 	global $wp_query; 
@@ -1728,10 +1490,993 @@ function filter_documents() {
   add_action('wp_ajax_nopriv_filter_documents', 'filter_documents');
 
 
+// ============================================================================
+// AI-POWERED INDEXING MONITORING SYSTEM
+// ============================================================================
 
-  add_filter('use_block_editor_for_post_type', 'prefix_disable_gutenberg', 10, 2);
-function prefix_disable_gutenberg($current_status, $post_type)
-{
-    if ($post_type === 'knowledge-base') return false;
-    return $current_status;
+/**
+ * Create database tables for indexing monitoring
+ */
+function create_indexing_monitoring_tables() {
+    global $wpdb;
+    $charset_collate = $wpdb->get_charset_collate();
+    
+    // Table for page indexing history
+    $table_name = $wpdb->prefix . 'indexing_history';
+    $sql = "CREATE TABLE IF NOT EXISTS $table_name (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        post_id bigint(20) NOT NULL,
+        post_url varchar(500) NOT NULL,
+        post_type varchar(50) NOT NULL,
+        post_title varchar(500) NOT NULL,
+        indexed_status varchar(50) NOT NULL,
+        last_check_date datetime DEFAULT CURRENT_TIMESTAMP,
+        last_crawl_date datetime NULL,
+        coverage_state varchar(100) NULL,
+        indexing_issues text NULL,
+        health_score int(3) DEFAULT 0,
+        PRIMARY KEY  (id),
+        KEY post_id (post_id),
+        KEY indexed_status (indexed_status),
+        KEY last_check_date (last_check_date)
+    ) $charset_collate;";
+    
+    // Table for indexing statistics
+    $table_stats = $wpdb->prefix . 'indexing_stats';
+    $sql_stats = "CREATE TABLE IF NOT EXISTS $table_stats (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        check_date datetime DEFAULT CURRENT_TIMESTAMP,
+        total_pages int(11) NOT NULL,
+        indexed_pages int(11) NOT NULL,
+        not_indexed_pages int(11) NOT NULL,
+        errors_pages int(11) DEFAULT 0,
+        avg_health_score decimal(5,2) DEFAULT 0,
+        notes text NULL,
+        PRIMARY KEY  (id),
+        KEY check_date (check_date)
+    ) $charset_collate;";
+    
+    // Table for page health issues
+    $table_issues = $wpdb->prefix . 'indexing_issues';
+    $sql_issues = "CREATE TABLE IF NOT EXISTS $table_issues (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        post_id bigint(20) NOT NULL,
+        issue_type varchar(100) NOT NULL,
+        issue_severity varchar(20) NOT NULL,
+        issue_description text NOT NULL,
+        ai_recommendation text NULL,
+        detected_date datetime DEFAULT CURRENT_TIMESTAMP,
+        resolved tinyint(1) DEFAULT 0,
+        resolved_date datetime NULL,
+        PRIMARY KEY  (id),
+        KEY post_id (post_id),
+        KEY issue_type (issue_type),
+        KEY resolved (resolved)
+    ) $charset_collate;";
+    
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    dbDelta($sql);
+    dbDelta($sql_stats);
+    dbDelta($sql_issues);
 }
+add_action('after_switch_theme', 'create_indexing_monitoring_tables');
+register_activation_hook(__FILE__, 'create_indexing_monitoring_tables');
+
+/**
+ * AI-Powered Page Health Checker
+ * Analyzes pages for common indexing issues
+ */
+function ai_analyze_page_health($post_id) {
+    $post = get_post($post_id);
+    if (!$post) return null;
+    
+    $health_score = 100;
+    $issues = array();
+    
+    // 1. Check robots meta
+    $robots_meta = get_post_meta($post_id, '_yoast_wpseo_meta-robots-noindex', true);
+    if ($robots_meta == '1') {
+        $issues[] = array(
+            'type' => 'robots_noindex',
+            'severity' => 'critical',
+            'description' => 'Page has noindex meta tag',
+            'recommendation' => 'Remove noindex meta tag if you want this page indexed'
+        );
+        $health_score -= 50;
+    }
+    
+    // 2. Check content length
+    $content = strip_tags($post->post_content);
+    $word_count = str_word_count($content);
+    if ($word_count < 300) {
+        $issues[] = array(
+            'type' => 'thin_content',
+            'severity' => 'high',
+            'description' => "Content is too thin ($word_count words)",
+            'recommendation' => 'Add more valuable content (aim for 300+ words). Google often deindexes thin content pages.'
+        );
+        $health_score -= 30;
+    }
+    
+    // 3. Check for duplicate content indicators
+    $title_length = strlen($post->post_title);
+    if ($title_length < 30) {
+        $issues[] = array(
+            'type' => 'short_title',
+            'severity' => 'medium',
+            'description' => 'Title is too short',
+            'recommendation' => 'Use descriptive titles (30-60 characters) for better SEO'
+        );
+        $health_score -= 10;
+    }
+    
+    // 4. Check if page has images
+    $has_images = has_post_thumbnail($post_id) || preg_match('/<img[^>]+>/i', $post->post_content);
+    if (!$has_images) {
+        $issues[] = array(
+            'type' => 'no_images',
+            'severity' => 'low',
+            'description' => 'Page has no images',
+            'recommendation' => 'Add relevant images to improve user experience and engagement signals'
+        );
+        $health_score -= 5;
+    }
+    
+    // 5. Check internal links
+    $internal_links = preg_match_all('/<a[^>]+href=["\']' . preg_quote(home_url(), '/') . '[^"\']*["\']/i', $post->post_content);
+    if ($internal_links < 2) {
+        $issues[] = array(
+            'type' => 'few_internal_links',
+            'severity' => 'medium',
+            'description' => 'Page has few internal links',
+            'recommendation' => 'Add 2-5 relevant internal links to improve site structure and crawlability'
+        );
+        $health_score -= 10;
+    }
+    
+    // 6. Check page speed indicators (large images)
+    if (preg_match_all('/<img[^>]+>/i', $post->post_content, $matches) > 10) {
+        $issues[] = array(
+            'type' => 'many_images',
+            'severity' => 'low',
+            'description' => 'Page has many images (potential speed issue)',
+            'recommendation' => 'Optimize images and implement lazy loading'
+        );
+        $health_score -= 5;
+    }
+    
+    // 7. Check canonical URL
+    $canonical = get_post_meta($post_id, '_yoast_wpseo_canonical', true);
+    if ($canonical && $canonical !== get_permalink($post_id)) {
+        $issues[] = array(
+            'type' => 'canonical_mismatch',
+            'severity' => 'high',
+            'description' => 'Canonical URL points to different page',
+            'recommendation' => 'This page tells Google to index a different URL instead. Remove or correct canonical URL.'
+        );
+        $health_score -= 40;
+    }
+    
+    // 8. Check if page is in sitemap
+    // This would require sitemap parsing - simplified check
+    if (get_post_meta($post_id, '_yoast_wpseo_sitemap-include', true) === 'never') {
+        $issues[] = array(
+            'type' => 'excluded_sitemap',
+            'severity' => 'critical',
+            'description' => 'Page excluded from XML sitemap',
+            'recommendation' => 'Include page in sitemap so search engines can discover it'
+        );
+        $health_score -= 45;
+    }
+    
+    return array(
+        'health_score' => max(0, $health_score),
+        'issues' => $issues,
+        'total_issues' => count($issues)
+    );
+}
+
+/**
+ * Save page health analysis to database
+ */
+function save_page_indexing_status($post_id, $indexed_status, $health_data = null) {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'indexing_history';
+    $table_issues = $wpdb->prefix . 'indexing_issues';
+    
+    $post = get_post($post_id);
+    if (!$post) return;
+    
+    // Get health analysis
+    if (!$health_data) {
+        $health_data = ai_analyze_page_health($post_id);
+    }
+    
+    // Save/update indexing history
+    $existing = $wpdb->get_row($wpdb->prepare(
+        "SELECT id FROM $table_name WHERE post_id = %d ORDER BY last_check_date DESC LIMIT 1",
+        $post_id
+    ));
+    
+    $data = array(
+        'post_id' => $post_id,
+        'post_url' => get_permalink($post_id),
+        'post_type' => $post->post_type,
+        'post_title' => $post->post_title,
+        'indexed_status' => $indexed_status,
+        'last_check_date' => current_time('mysql'),
+        'health_score' => $health_data['health_score'],
+        'indexing_issues' => json_encode($health_data['issues'])
+    );
+    
+    if ($existing) {
+        $wpdb->update($table_name, $data, array('id' => $existing->id));
+    } else {
+        $wpdb->insert($table_name, $data);
+    }
+    
+    // Save individual issues
+    if (!empty($health_data['issues'])) {
+        // Clear old unresolved issues for this post
+        $wpdb->update(
+            $table_issues,
+            array('resolved' => 1, 'resolved_date' => current_time('mysql')),
+            array('post_id' => $post_id, 'resolved' => 0)
+        );
+        
+        // Add new issues
+        foreach ($health_data['issues'] as $issue) {
+            $wpdb->insert($table_issues, array(
+                'post_id' => $post_id,
+                'issue_type' => $issue['type'],
+                'issue_severity' => $issue['severity'],
+                'issue_description' => $issue['description'],
+                'ai_recommendation' => $issue['recommendation'],
+                'detected_date' => current_time('mysql'),
+                'resolved' => 0
+            ));
+        }
+    }
+}
+
+/**
+ * Scan all published pages and check their indexing health
+ */
+function scan_all_pages_indexing_health() {
+    global $wpdb;
+    
+    $post_types = array('post', 'page', 'product', 'knowledge-base', 'documents', 'customer-stories', 'videos');
+    
+    $args = array(
+        'post_type' => $post_types,
+        'post_status' => 'publish',
+        'posts_per_page' => -1,
+        'fields' => 'ids'
+    );
+    
+    $posts = get_posts($args);
+    $total_pages = count($posts);
+    $indexed_count = 0;
+    $not_indexed_count = 0;
+    $total_health = 0;
+    
+    foreach ($posts as $post_id) {
+        $health_data = ai_analyze_page_health($post_id);
+        
+        // Determine if page should be indexed based on health score
+        $indexed_status = 'indexed'; // Default assumption
+        if ($health_data['health_score'] < 50) {
+            $indexed_status = 'at_risk';
+            $not_indexed_count++;
+        } else {
+            $indexed_count++;
+        }
+        
+        save_page_indexing_status($post_id, $indexed_status, $health_data);
+        $total_health += $health_data['health_score'];
+    }
+    
+    // Save statistics
+    $table_stats = $wpdb->prefix . 'indexing_stats';
+    $wpdb->insert($table_stats, array(
+        'check_date' => current_time('mysql'),
+        'total_pages' => $total_pages,
+        'indexed_pages' => $indexed_count,
+        'not_indexed_pages' => $not_indexed_count,
+        'avg_health_score' => $total_pages > 0 ? round($total_health / $total_pages, 2) : 0
+    ));
+    
+    return array(
+        'total' => $total_pages,
+        'indexed' => $indexed_count,
+        'not_indexed' => $not_indexed_count,
+        'avg_health' => $total_pages > 0 ? round($total_health / $total_pages, 2) : 0
+    );
+}
+
+/**
+ * Check Google Search Console API for real indexing status
+ * Note: Requires Google Search Console API credentials
+ */
+function check_gsc_indexing_status($post_url = null) {
+    // This requires Google Search Console API setup
+    // For now, return a placeholder that can be integrated with GSC API
+    
+    $gsc_credentials = get_option('gsc_api_credentials');
+    if (!$gsc_credentials) {
+        return array(
+            'status' => 'error',
+            'message' => 'Google Search Console API not configured. Set up in Settings → Indexing Monitor.'
+        );
+    }
+    
+    // Placeholder for GSC API integration
+    // Real implementation would use Google_Service_SearchConsole
+    return array(
+        'status' => 'pending',
+        'message' => 'GSC API integration pending. Using local health analysis for now.'
+    );
+}
+
+/**
+ * Add admin menu for Indexing Monitor
+ */
+function add_indexing_monitor_menu() {
+    add_menu_page(
+        'Indexing Monitor',
+        'Indexing Monitor',
+        'manage_options',
+        'indexing-monitor',
+        'render_indexing_monitor_page',
+        'dashicons-chart-line',
+        30
+    );
+    
+    add_submenu_page(
+        'indexing-monitor',
+        'Health Issues',
+        'Health Issues',
+        'manage_options',
+        'indexing-issues',
+        'render_indexing_issues_page'
+    );
+    
+    add_submenu_page(
+        'indexing-monitor',
+        'Settings',
+        'Settings',
+        'manage_options',
+        'indexing-settings',
+        'render_indexing_settings_page'
+    );
+}
+add_action('admin_menu', 'add_indexing_monitor_menu');
+
+/**
+ * Render main indexing monitor dashboard
+ */
+function render_indexing_monitor_page() {
+    global $wpdb;
+    
+    // Handle manual scan trigger
+    if (isset($_POST['trigger_scan']) && check_admin_referer('indexing_scan_action', 'indexing_scan_nonce')) {
+        $results = scan_all_pages_indexing_health();
+        echo '<div class="notice notice-success"><p>Scan completed! Total: ' . $results['total'] . ', Healthy: ' . $results['indexed'] . ', At Risk: ' . $results['not_indexed'] . '</p></div>';
+    }
+    
+    // Get latest statistics
+    $table_stats = $wpdb->prefix . 'indexing_stats';
+    $latest_stats = $wpdb->get_row("SELECT * FROM $table_stats ORDER BY check_date DESC LIMIT 1");
+    
+    // Get historical data (last 30 days)
+    $historical_data = $wpdb->get_results("
+        SELECT DATE(check_date) as date, indexed_pages, not_indexed_pages, total_pages 
+        FROM $table_stats 
+        WHERE check_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        ORDER BY check_date ASC
+    ");
+    
+    // Get pages with issues
+    $table_history = $wpdb->prefix . 'indexing_history';
+    $problem_pages = $wpdb->get_results("
+        SELECT * FROM $table_history 
+        WHERE health_score < 70 
+        ORDER BY health_score ASC 
+        LIMIT 20
+    ");
+    
+    ?>
+    <div class="wrap">
+        <h1>🔍 AI-Powered Indexing Monitor</h1>
+        
+        <div style="background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h2>📊 Current Indexing Status</h2>
+            
+            <?php if ($latest_stats): ?>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0;">
+                    <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                        <div style="font-size: 14px; color: #64748b;">Total Pages</div>
+                        <div style="font-size: 32px; font-weight: bold; color: #1e293b;"><?php echo $latest_stats->total_pages; ?></div>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 5px;">Last checked: <?php echo date('M j, Y g:i A', strtotime($latest_stats->check_date)); ?></div>
+                    </div>
+                    
+                    <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; border-left: 4px solid #22c55e;">
+                        <div style="font-size: 14px; color: #64748b;">Healthy Pages</div>
+                        <div style="font-size: 32px; font-weight: bold; color: #15803d;"><?php echo $latest_stats->indexed_pages; ?></div>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 5px;">
+                            <?php echo round(($latest_stats->indexed_pages / $latest_stats->total_pages) * 100, 1); ?>% of total
+                        </div>
+                    </div>
+                    
+                    <div style="background: #fef2f2; padding: 20px; border-radius: 8px; border-left: 4px solid #ef4444;">
+                        <div style="font-size: 14px; color: #64748b;">At Risk</div>
+                        <div style="font-size: 32px; font-weight: bold; color: #dc2626;"><?php echo $latest_stats->not_indexed_pages; ?></div>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 5px;">
+                            <?php echo round(($latest_stats->not_indexed_pages / $latest_stats->total_pages) * 100, 1); ?>% of total
+                        </div>
+                    </div>
+                    
+                    <div style="background: #fefce8; padding: 20px; border-radius: 8px; border-left: 4px solid #eab308;">
+                        <div style="font-size: 14px; color: #64748b;">Avg Health Score</div>
+                        <div style="font-size: 32px; font-weight: bold; color: #ca8a04;"><?php echo $latest_stats->avg_health_score; ?>/100</div>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 5px;">
+                            <?php 
+                            if ($latest_stats->avg_health_score >= 80) echo '✅ Excellent';
+                            elseif ($latest_stats->avg_health_score >= 60) echo '⚠️ Good';
+                            else echo '🚨 Needs Attention';
+                            ?>
+                        </div>
+                    </div>
+                </div>
+                
+                <?php if ($historical_data && count($historical_data) > 1): ?>
+                    <div style="margin-top: 30px;">
+                        <h3>📈 30-Day Indexing Trend</h3>
+                        <canvas id="indexingChart" style="max-height: 300px;"></canvas>
+                        <script>
+                        jQuery(document).ready(function($) {
+                            const ctx = document.getElementById('indexingChart');
+                            if (ctx) {
+                                new Chart(ctx, {
+                                    type: 'line',
+                                    data: {
+                                        labels: <?php echo json_encode(array_map(function($d) { return date('M j', strtotime($d->date)); }, $historical_data)); ?>,
+                                        datasets: [{
+                                            label: 'Healthy Pages',
+                                            data: <?php echo json_encode(array_map(function($d) { return $d->indexed_pages; }, $historical_data)); ?>,
+                                            borderColor: '#22c55e',
+                                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                            tension: 0.4
+                                        }, {
+                                            label: 'At Risk Pages',
+                                            data: <?php echo json_encode(array_map(function($d) { return $d->not_indexed_pages; }, $historical_data)); ?>,
+                                            borderColor: '#ef4444',
+                                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                            tension: 0.4
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: true,
+                                        plugins: {
+                                            legend: {
+                                                position: 'bottom'
+                                            }
+                                        },
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                        </script>
+                    </div>
+                <?php endif; ?>
+                
+            <?php else: ?>
+                <div style="background: #fef3c7; padding: 20px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                    <p><strong>⚠️ No scan data available yet.</strong></p>
+                    <p>Click "Run Full Scan" below to analyze all your pages.</p>
+                </div>
+            <?php endif; ?>
+            
+            <form method="post" style="margin-top: 20px;">
+                <?php wp_nonce_field('indexing_scan_action', 'indexing_scan_nonce'); ?>
+                <button type="submit" name="trigger_scan" class="button button-primary button-hero">
+                    🔄 Run Full Scan (Analyze All Pages)
+                </button>
+                <p class="description">This will analyze all published pages for indexing issues. May take a few minutes for large sites.</p>
+            </form>
+        </div>
+        
+        <?php if (!empty($problem_pages)): ?>
+        <div style="background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h2>🚨 Pages Needing Attention (Lowest Health Scores)</h2>
+            <table class="wp-list-table widefat fixed striped">
+                <thead>
+                    <tr>
+                        <th>Page Title</th>
+                        <th>Type</th>
+                        <th>Health Score</th>
+                        <th>Status</th>
+                        <th>Issues Found</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($problem_pages as $page): 
+                        $issues = json_decode($page->indexing_issues, true);
+                        $health_color = $page->health_score >= 70 ? '#22c55e' : ($page->health_score >= 50 ? '#f59e0b' : '#ef4444');
+                    ?>
+                    <tr>
+                        <td>
+                            <strong><?php echo esc_html($page->post_title); ?></strong>
+                            <div style="font-size: 12px; color: #64748b;">
+                                <a href="<?php echo esc_url($page->post_url); ?>" target="_blank">View Page</a> | 
+                                <a href="<?php echo get_edit_post_link($page->post_id); ?>">Edit</a>
+                            </div>
+                        </td>
+                        <td><?php echo esc_html($page->post_type); ?></td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="flex: 1; background: #e5e7eb; height: 8px; border-radius: 4px; overflow: hidden;">
+                                    <div style="width: <?php echo $page->health_score; ?>%; background: <?php echo $health_color; ?>; height: 100%;"></div>
+                                </div>
+                                <strong style="color: <?php echo $health_color; ?>;"><?php echo $page->health_score; ?></strong>
+                            </div>
+                        </td>
+                        <td>
+                            <?php if ($page->indexed_status == 'indexed'): ?>
+                                <span style="background: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 4px; font-size: 12px;">✓ Indexed</span>
+                            <?php else: ?>
+                                <span style="background: #fee2e2; color: #dc2626; padding: 4px 8px; border-radius: 4px; font-size: 12px;">⚠ At Risk</span>
+                            <?php endif; ?>
+                        </td>
+                        <td><?php echo count($issues); ?> issues</td>
+                        <td>
+                            <a href="admin.php?page=indexing-issues&post_id=<?php echo $page->post_id; ?>" class="button button-small">
+                                View Details
+                            </a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php endif; ?>
+        
+        <div style="background: #eff6ff; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #3b82f6;">
+            <h3>💡 AI Recommendations</h3>
+            <ul style="line-height: 1.8;">
+                <li><strong>Run daily scans</strong> to monitor indexing health trends</li>
+                <li><strong>Focus on pages below 50 health score</strong> - they're most at risk of deindexing</li>
+                <li><strong>Check "Health Issues" tab</strong> for specific AI recommendations for each page</li>
+                <li><strong>Set up Google Search Console API</strong> in Settings for real indexing data</li>
+                <li><strong>Monitor the trend chart</strong> - sudden drops indicate site-wide issues</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <?php
+}
+
+/**
+ * Render health issues page
+ */
+function render_indexing_issues_page() {
+    global $wpdb;
+    $table_issues = $wpdb->prefix . 'indexing_issues';
+    
+    // Get filter
+    $filter_severity = isset($_GET['severity']) ? sanitize_text_field($_GET['severity']) : 'all';
+    $filter_post_id = isset($_GET['post_id']) ? intval($_GET['post_id']) : 0;
+    
+    // Build query
+    $where = "WHERE resolved = 0";
+    if ($filter_severity != 'all') {
+        $where .= $wpdb->prepare(" AND issue_severity = %s", $filter_severity);
+    }
+    if ($filter_post_id > 0) {
+        $where .= $wpdb->prepare(" AND post_id = %d", $filter_post_id);
+    }
+    
+    $issues = $wpdb->get_results("
+        SELECT i.*, p.post_title, p.post_type 
+        FROM $table_issues i
+        LEFT JOIN {$wpdb->posts} p ON i.post_id = p.ID
+        $where
+        ORDER BY 
+            CASE issue_severity 
+                WHEN 'critical' THEN 1 
+                WHEN 'high' THEN 2 
+                WHEN 'medium' THEN 3 
+                ELSE 4 
+            END,
+            i.detected_date DESC
+    ");
+    
+    // Get severity counts
+    $severity_counts = $wpdb->get_results("
+        SELECT issue_severity, COUNT(*) as count 
+        FROM $table_issues 
+        WHERE resolved = 0 
+        GROUP BY issue_severity
+    ", OBJECT_K);
+    
+    ?>
+    <div class="wrap">
+        <h1>🔧 Page Health Issues</h1>
+        
+        <div style="background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <a href="?page=indexing-issues&severity=all" class="button <?php echo $filter_severity == 'all' ? 'button-primary' : ''; ?>">
+                    All Issues (<?php echo array_sum(array_map(function($c) { return $c->count; }, $severity_counts)); ?>)
+                </a>
+                <a href="?page=indexing-issues&severity=critical" class="button <?php echo $filter_severity == 'critical' ? 'button-primary' : ''; ?>" style="border-color: #dc2626;">
+                    🔴 Critical (<?php echo isset($severity_counts['critical']) ? $severity_counts['critical']->count : 0; ?>)
+                </a>
+                <a href="?page=indexing-issues&severity=high" class="button <?php echo $filter_severity == 'high' ? 'button-primary' : ''; ?>" style="border-color: #f59e0b;">
+                    🟡 High (<?php echo isset($severity_counts['high']) ? $severity_counts['high']->count : 0; ?>)
+                </a>
+                <a href="?page=indexing-issues&severity=medium" class="button <?php echo $filter_severity == 'medium' ? 'button-primary' : ''; ?>">
+                    🟢 Medium (<?php echo isset($severity_counts['medium']) ? $severity_counts['medium']->count : 0; ?>)
+                </a>
+                <a href="?page=indexing-issues&severity=low" class="button <?php echo $filter_severity == 'low' ? 'button-primary' : ''; ?>">
+                    ⚪ Low (<?php echo isset($severity_counts['low']) ? $severity_counts['low']->count : 0; ?>)
+                </a>
+            </div>
+            
+            <?php if (empty($issues)): ?>
+                <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; text-align: center;">
+                    <p style="font-size: 18px;">🎉 <strong>Great news!</strong> No issues found!</p>
+                    <p>Your pages are in good health for indexing.</p>
+                </div>
+            <?php else: ?>
+                <table class="wp-list-table widefat fixed striped">
+                    <thead>
+                        <tr>
+                            <th width="5%">Severity</th>
+                            <th width="25%">Page</th>
+                            <th width="15%">Issue Type</th>
+                            <th width="25%">Description</th>
+                            <th width="25%">AI Recommendation</th>
+                            <th width="5%">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($issues as $issue): 
+                            $severity_badge = array(
+                                'critical' => array('color' => '#dc2626', 'bg' => '#fee2e2', 'icon' => '🔴'),
+                                'high' => array('color' => '#f59e0b', 'bg' => '#fef3c7', 'icon' => '🟡'),
+                                'medium' => array('color' => '#3b82f6', 'bg' => '#dbeafe', 'icon' => '🔵'),
+                                'low' => array('color' => '#64748b', 'bg' => '#f1f5f9', 'icon' => '⚪')
+                            );
+                            $badge = $severity_badge[$issue->issue_severity] ?? $severity_badge['low'];
+                        ?>
+                        <tr>
+                            <td>
+                                <span style="background: <?php echo $badge['bg']; ?>; color: <?php echo $badge['color']; ?>; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; display: inline-block;">
+                                    <?php echo $badge['icon']; ?> <?php echo strtoupper($issue->issue_severity); ?>
+                                </span>
+                            </td>
+                            <td>
+                                <strong><?php echo esc_html($issue->post_title); ?></strong>
+                                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">
+                                    <?php echo esc_html($issue->post_type); ?> | 
+                                    <a href="<?php echo get_edit_post_link($issue->post_id); ?>">Edit</a>
+                                </div>
+                            </td>
+                            <td>
+                                <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 12px;">
+                                    <?php echo esc_html(str_replace('_', ' ', $issue->issue_type)); ?>
+                                </code>
+                            </td>
+                            <td><?php echo esc_html($issue->issue_description); ?></td>
+                            <td>
+                                <div style="background: #eff6ff; padding: 10px; border-radius: 4px; border-left: 3px solid #3b82f6;">
+                                    <?php echo esc_html($issue->ai_recommendation); ?>
+                                </div>
+                            </td>
+                            <td>
+                                <a href="<?php echo get_edit_post_link($issue->post_id); ?>" class="button button-small button-primary">
+                                    Fix Now
+                                </a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+        
+        <div style="background: #fefce8; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #eab308;">
+            <h3>💡 Understanding Issue Severities</h3>
+            <ul style="line-height: 1.8;">
+                <li><strong>🔴 Critical:</strong> Will definitely prevent indexing (e.g., noindex tag, canonical to different page, excluded from sitemap)</li>
+                <li><strong>🟡 High:</strong> Likely to cause deindexing (e.g., thin content, duplicate content)</li>
+                <li><strong>🔵 Medium:</strong> May affect indexing quality (e.g., short titles, few internal links)</li>
+                <li><strong>⚪ Low:</strong> Minor improvements (e.g., missing images, optimization opportunities)</li>
+            </ul>
+        </div>
+    </div>
+    <?php
+}
+
+/**
+ * Render settings page
+ */
+function render_indexing_settings_page() {
+    // Handle settings save
+    if (isset($_POST['save_settings']) && check_admin_referer('indexing_settings_action', 'indexing_settings_nonce')) {
+        update_option('indexing_monitor_enabled', isset($_POST['monitor_enabled']) ? 1 : 0);
+        update_option('indexing_alert_email', sanitize_email($_POST['alert_email']));
+        update_option('indexing_alert_threshold', intval($_POST['alert_threshold']));
+        update_option('indexing_scan_frequency', sanitize_text_field($_POST['scan_frequency']));
+        
+        // Save GSC credentials if provided
+        if (!empty($_POST['gsc_json_key'])) {
+            update_option('gsc_api_credentials', sanitize_textarea_field($_POST['gsc_json_key']));
+        }
+        
+        echo '<div class="notice notice-success"><p>Settings saved successfully!</p></div>';
+    }
+    
+    $monitor_enabled = get_option('indexing_monitor_enabled', 1);
+    $alert_email = get_option('indexing_alert_email', get_option('admin_email'));
+    $alert_threshold = get_option('indexing_alert_threshold', 10);
+    $scan_frequency = get_option('indexing_scan_frequency', 'daily');
+    $gsc_credentials = get_option('gsc_api_credentials', '');
+    
+    ?>
+    <div class="wrap">
+        <h1>⚙️ Indexing Monitor Settings</h1>
+        
+        <form method="post" style="background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <?php wp_nonce_field('indexing_settings_action', 'indexing_settings_nonce'); ?>
+            
+            <h2>General Settings</h2>
+            
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Enable Monitoring</th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="monitor_enabled" value="1" <?php checked($monitor_enabled, 1); ?>>
+                            Enable automatic indexing health monitoring
+                        </label>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <th scope="row">Scan Frequency</th>
+                    <td>
+                        <select name="scan_frequency">
+                            <option value="hourly" <?php selected($scan_frequency, 'hourly'); ?>>Every Hour</option>
+                            <option value="twicedaily" <?php selected($scan_frequency, 'twicedaily'); ?>>Twice Daily</option>
+                            <option value="daily" <?php selected($scan_frequency, 'daily'); ?>>Once Daily</option>
+                            <option value="weekly" <?php selected($scan_frequency, 'weekly'); ?>>Once Weekly</option>
+                        </select>
+                        <p class="description">How often to automatically scan pages for indexing issues</p>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <th scope="row">Alert Email</th>
+                    <td>
+                        <input type="email" name="alert_email" value="<?php echo esc_attr($alert_email); ?>" class="regular-text">
+                        <p class="description">Email address to receive indexing alerts</p>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <th scope="row">Alert Threshold</th>
+                    <td>
+                        <input type="number" name="alert_threshold" value="<?php echo esc_attr($alert_threshold); ?>" min="1" max="100">
+                        <span>pages</span>
+                        <p class="description">Send alert when this many pages drop below health score of 50</p>
+                    </td>
+                </tr>
+            </table>
+            
+            <h2>Google Search Console API (Optional)</h2>
+            <p>Connect to Google Search Console for real-time indexing data from Google.</p>
+            
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Service Account JSON Key</th>
+                    <td>
+                        <textarea name="gsc_json_key" rows="6" class="large-text code" placeholder='{"type": "service_account", "project_id": "...", ...}'><?php echo esc_textarea($gsc_credentials); ?></textarea>
+                        <p class="description">
+                            <strong>Setup Instructions:</strong><br>
+                            1. Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a><br>
+                            2. Create a new project or select existing<br>
+                            3. Enable "Google Search Console API"<br>
+                            4. Create Service Account and download JSON key<br>
+                            5. Add service account email to your Search Console property<br>
+                            6. Paste JSON key contents above
+                        </p>
+                    </td>
+                </tr>
+            </table>
+            
+            <p class="submit">
+                <button type="submit" name="save_settings" class="button button-primary button-large">
+                    💾 Save Settings
+                </button>
+            </p>
+        </form>
+        
+        <div style="background: #eff6ff; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #3b82f6;">
+            <h3>📚 How This System Works</h3>
+            <ol style="line-height: 1.8;">
+                <li><strong>AI Health Analysis:</strong> Automatically scans all published pages for common indexing issues</li>
+                <li><strong>Health Scoring:</strong> Each page gets a score (0-100) based on best practices</li>
+                <li><strong>Issue Detection:</strong> Identifies specific problems like noindex tags, thin content, missing sitemaps</li>
+                <li><strong>Smart Recommendations:</strong> Provides actionable advice to fix each issue</li>
+                <li><strong>Trend Tracking:</strong> Monitors changes over time to catch sudden drops</li>
+                <li><strong>Automated Alerts:</strong> Emails you when issues are detected</li>
+            </ol>
+        </div>
+        
+        <div style="background: #fef3c7; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #f59e0b;">
+            <h3>⚠️ Common Reasons for Deindexing</h3>
+            <ul style="line-height: 1.8;">
+                <li><strong>Thin Content:</strong> Pages with less than 300 words often get deindexed</li>
+                <li><strong>Duplicate Content:</strong> Multiple pages with similar content</li>
+                <li><strong>Technical Issues:</strong> Noindex tags, robots.txt blocks, canonical issues</li>
+                <li><strong>Low Quality:</strong> Pages with no images, no internal links, or poor formatting</li>
+                <li><strong>Crawl Budget:</strong> Large sites may not have all pages crawled regularly</li>
+                <li><strong>Manual Actions:</strong> Google penalties (check Search Console)</li>
+            </ul>
+        </div>
+    </div>
+    <?php
+}
+
+/**
+ * Schedule automated scans
+ */
+function schedule_indexing_scans() {
+    $frequency = get_option('indexing_scan_frequency', 'daily');
+    
+    if (!wp_next_scheduled('run_indexing_scan')) {
+        wp_schedule_event(time(), $frequency, 'run_indexing_scan');
+    }
+}
+add_action('wp', 'schedule_indexing_scans');
+
+/**
+ * Run scheduled scan
+ */
+function run_scheduled_indexing_scan() {
+    if (get_option('indexing_monitor_enabled', 1)) {
+        $results = scan_all_pages_indexing_health();
+        
+        // Check if we should send alert
+        $threshold = get_option('indexing_alert_threshold', 10);
+        if ($results['not_indexed'] >= $threshold) {
+            $alert_email = get_option('indexing_alert_email', get_option('admin_email'));
+            
+            $subject = '⚠️ Indexing Alert: ' . $results['not_indexed'] . ' Pages at Risk';
+            $message = "Your site has " . $results['not_indexed'] . " pages at risk of being deindexed.\n\n";
+            $message .= "Total Pages: " . $results['total'] . "\n";
+            $message .= "Healthy Pages: " . $results['indexed'] . "\n";
+            $message .= "At Risk Pages: " . $results['not_indexed'] . "\n";
+            $message .= "Average Health Score: " . $results['avg_health'] . "/100\n\n";
+            $message .= "View details: " . admin_url('admin.php?page=indexing-monitor') . "\n";
+            
+            wp_mail($alert_email, $subject, $message);
+        }
+    }
+}
+add_action('run_indexing_scan', 'run_scheduled_indexing_scan');
+
+/**
+ * AJAX handler to check single page
+ */
+function ajax_check_single_page() {
+    check_ajax_referer('indexing_nonce', 'nonce');
+    
+    $post_id = intval($_POST['post_id']);
+    $health_data = ai_analyze_page_health($post_id);
+    
+    wp_send_json_success($health_data);
+}
+add_action('wp_ajax_check_single_page', 'ajax_check_single_page');
+
+/**
+ * Add meta box to posts/pages for quick health check
+ */
+function add_indexing_health_meta_box() {
+    $post_types = array('post', 'page', 'product', 'knowledge-base', 'documents', 'customer-stories');
+    
+    foreach ($post_types as $post_type) {
+        add_meta_box(
+            'indexing_health_check',
+            '🔍 Indexing Health Check',
+            'render_indexing_health_meta_box',
+            $post_type,
+            'side',
+            'high'
+        );
+    }
+}
+add_action('add_meta_boxes', 'add_indexing_health_meta_box');
+
+/**
+ * Render indexing health meta box
+ */
+function render_indexing_health_meta_box($post) {
+    $health_data = ai_analyze_page_health($post->ID);
+    $health_score = $health_data['health_score'];
+    $health_color = $health_score >= 70 ? '#22c55e' : ($health_score >= 50 ? '#f59e0b' : '#ef4444');
+    
+    wp_nonce_field('indexing_nonce', 'indexing_nonce');
+    ?>
+    <div style="padding: 10px;">
+        <div style="text-align: center; margin-bottom: 15px;">
+            <div style="font-size: 48px; font-weight: bold; color: <?php echo $health_color; ?>;">
+                <?php echo $health_score; ?>
+            </div>
+            <div style="font-size: 14px; color: #64748b;">Health Score</div>
+        </div>
+        
+        <div style="background: #f1f5f9; height: 12px; border-radius: 6px; overflow: hidden; margin-bottom: 15px;">
+            <div style="width: <?php echo $health_score; ?>%; background: <?php echo $health_color; ?>; height: 100%; transition: width 0.3s;"></div>
+        </div>
+        
+        <?php if (empty($health_data['issues'])): ?>
+            <div style="background: #f0fdf4; padding: 10px; border-radius: 4px; text-align: center; color: #15803d;">
+                ✅ No issues found!
+            </div>
+        <?php else: ?>
+            <div style="margin-bottom: 10px;">
+                <strong><?php echo count($health_data['issues']); ?> Issue<?php echo count($health_data['issues']) > 1 ? 's' : ''; ?> Found:</strong>
+            </div>
+            <?php foreach ($health_data['issues'] as $issue): 
+                $severity_colors = array(
+                    'critical' => '#dc2626',
+                    'high' => '#f59e0b',
+                    'medium' => '#3b82f6',
+                    'low' => '#64748b'
+                );
+                $color = $severity_colors[$issue['severity']] ?? '#64748b';
+            ?>
+                <div style="background: #f9fafb; padding: 10px; margin-bottom: 8px; border-radius: 4px; border-left: 3px solid <?php echo $color; ?>;">
+                    <div style="font-size: 12px; font-weight: bold; color: <?php echo $color; ?>; text-transform: uppercase; margin-bottom: 4px;">
+                        <?php echo esc_html($issue['severity']); ?>
+                    </div>
+                    <div style="font-size: 13px; margin-bottom: 4px;">
+                        <?php echo esc_html($issue['description']); ?>
+                    </div>
+                    <div style="font-size: 12px; color: #64748b; font-style: italic;">
+                        💡 <?php echo esc_html($issue['recommendation']); ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+        
+        <a href="<?php echo admin_url('admin.php?page=indexing-monitor'); ?>" class="button button-secondary" style="width: 100%; text-align: center; margin-top: 10px;">
+            View Full Report
+        </a>
+    </div>
+    
+    <script>
+    jQuery(document).ready(function($) {
+        // Auto-refresh health check when saving
+        $(document).on('click', '#publish, #save-post', function() {
+            setTimeout(function() {
+                location.reload();
+            }, 1000);
+        });
+    });
+    </script>
+    <?php
+}
+
+// Initialize database tables on theme activation
+create_indexing_monitoring_tables();

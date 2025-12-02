@@ -11,22 +11,25 @@ window.GA_CONFIG = {
     // Your Google Analytics Client ID (from Google Cloud Console)
     clientId: '80073531163-sb62ld6sqfu7uvum4fj32cfrfkjo2hd3.apps.googleusercontent.com',
     
-    // Your Google Analytics View ID (found in GA Admin > View Settings)
+    // Your Google Analytics View ID (found in GA Admin > View Settings) - Legacy UA
     viewId: '444630398',
     
-    // API Scopes
+    // API Scopes for GA4
     scopes: ['https://www.googleapis.com/auth/analytics.readonly'],
     
-    // Analytics property ID (GA4: G-XXXXXXXXXX, Universal Analytics: UA-XXXXXXXX-X)
-    propertyId: 'G-444630398',
+    // GA4 Property ID (format: 123456789)
+    propertyId: '444630398',
+    
+    // GA4 Measurement ID (format: G-XXXXXXXXXX)
+    measurementId: 'G-444630398',
     
     // Measurement Protocol API Secret (for GA4)
     measurementProtocolSecret: '',
     
-    // Service Account Configuration (Alternative to OAuth)
+    // Service Account Configuration (Recommended for server-side)
     serviceAccount: {
         // Enable service account authentication
-        enabled: false,
+        enabled: true,
         
         // Service account email (from Google Cloud Console)
         clientEmail: '',

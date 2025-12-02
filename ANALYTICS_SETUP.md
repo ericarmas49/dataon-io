@@ -73,10 +73,10 @@ window.GA_CONFIG = {
 ## Features
 
 ### Metrics Cards
-- **Total Page Views**: Sum of all page views in the selected period
-- **Active Pages**: Number of pages with traffic
-- **Organic Traffic**: Percentage of traffic from organic search
-- **Recent Events**: Number of recent user interactions
+- **Active Users**: Number of users currently active on the site (real-time)
+- **Views**: Sum of all page views in the selected period
+- **Event Count**: Number of recent user interactions/events
+- **New Users**: Number of new users in the selected period
 
 ### Charts
 - **Page Views Chart**: Bar chart showing page views by page
