@@ -40,7 +40,7 @@
                 <div class="col-12 footer-copy">
                 <a href="#testimonials" class="skip-link screen-reader-text" style="visibility: hidden;" >Skip to the content</a>
                     <div id="copyright">
-                        &copy; <?php echo esc_html( date_i18n( __( 'Y', 'blankslate' ) ) ); ?> <?php echo esc_html( get_bloginfo( 'name' ) ); ?>
+                        &copy; <?php echo esc_html( date_i18n( __( 'Y', 'blankslate' ) ) ); ?> DataON
                     </div>
                 </div>
             </div>

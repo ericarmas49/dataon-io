@@ -8,6 +8,66 @@
 
 <?php get_header(); ?>
 
+<style>
+/* Add to Calendar Button Styling */
+.add-to-calendar-wrapper {
+    margin: 30px 0;
+    text-align: center;
+}
+
+.addeventatc {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white !important;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none !important;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: none;
+    font-family: inherit;
+}
+
+.addeventatc:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    color: white !important;
+}
+
+.addeventatc:active {
+    transform: translateY(0);
+}
+
+/* Hide the hidden spans */
+.addeventatc .start,
+.addeventatc .end,
+.addeventatc .timezone,
+.addeventatc .title,
+.addeventatc .description,
+.addeventatc .location {
+    display: none;
+}
+
+/* Style the dropdown menu */
+.addeventatc_dropdown {
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    border: 1px solid #e0e0e0 !important;
+}
+
+.addeventatc_dropdown a {
+    padding: 12px 16px !important;
+    transition: background 0.2s !important;
+}
+
+.addeventatc_dropdown a:hover {
+    background: #f8f9fa !important;
+}
+</style>
+
 <?php
 // $banner = get_field('banner');
 // $bgColor = '';
@@ -105,6 +165,17 @@ if(!empty($bgImg)) {
                     <div class="entry-content" itemprop="mainContentOfPage">
                         <?php if ( has_post_thumbnail() ) { the_post_thumbnail( 'full', array( 'itemprop' => 'image' ) ); } ?>
                         <?php the_content(); ?>
+                        
+                        <?php
+                        // Add to Calendar button (if event has a date)
+                        $calendar_button = dataon_add_to_calendar_button();
+                        if ( ! empty( $calendar_button ) ) {
+                            echo '<div class="add-to-calendar-wrapper" style="margin: 30px 0;">';
+                            echo $calendar_button;
+                            echo '</div>';
+                        }
+                        ?>
+                        
                         <div class="entry-links"><?php wp_link_pages(); ?></div>
                     </div>
                 </article>
@@ -115,64 +186,7 @@ if(!empty($bgImg)) {
     </div>
 </div>
 
-<section class="container-fluid cta">
-    <div class="container">
-        <div class="row cta">
-            <div class="col-12 col-lg-6 col-md-12 cta-content">
-
-                <h4>No one knows Microsoft hybrid cloud like DataON</h4>
-                <p>We can help you make the leap to hybrid cloud</p>
-
-            </div>
-
-
-            <div class="col-12 col-lg-6 col-md-12 cta-items">
-
-                <div class="row">
-
-                <div class="col-12 col-lg-3 col-md-6 col-sm-12 call">
-                    <a href="tel:1-888-726-8588">
-                        <div class="cta-icon">
-                            <img src="https://dataon.wpengine.com/wp-content/uploads/2023/12/Call.svg" />
-                            Call DataON
-                        </div>
-                    </a>
-                </div>
-
-                
-                <div class="col-12 col-lg-3 col-md-6 col-sm-12 chat">
-                    <a href="#">
-                            <div class="cta-icon">
-                                <img src="https://dataon.wpengine.com/wp-content/uploads/2023/12/Chat-now.svg" />
-                                Chat Now
-                            </div>
-                    </a>
-                </div>
-                
-                <div class="col-12 col-lg-3 col-md-6 col-sm-12 email-call">
-                    <a href="mailto:sales@dataonstorage.com?subject=Please Contact Me about Azure Hybrid Cloud" target="_blank">
-                        <div class="cta-icon">
-                            <img src="https://dataon.wpengine.com/wp-content/uploads/2023/12/Email-Sales.svg" />
-                            Email Sales
-                        </div>
-                    </a>
-                </div>
-
-                <div class="col-12 col-lg-3 col-md-6 col-sm-12 email-support">
-                    <a href="mailto:support@dataonstorage.com?subject=I Need Help with my Azure Hybrid Cloud Deployment" target="_blank">
-                        <div class="cta-icon">
-                            <img src="https://dataon.wpengine.com/wp-content/uploads/2023/12/Email-Support.svg" />
-                            Email Support
-                        </div>
-                    </a>
-                </div>
-
-                </div>
-
-            </div>
-        </div>
-    </div>
-</section>
+<?php get_template_part( 'template', 'cta' ); ?>
 
 
 <?php get_footer(); ?>

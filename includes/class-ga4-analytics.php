@@ -356,17 +356,24 @@ class GA4_Analytics {
     /**
      * Get comprehensive analytics data
      */
-    public function get_analytics_data($period = 'day') {
-        $date_ranges = [
-            'day' => ['7daysAgo', 'today'],
-            'week' => ['30daysAgo', 'today'],
-            'month' => ['90daysAgo', 'today'],
-            'all_time' => ['365daysAgo', 'today']
-        ];
-        
-        $range = $date_ranges[$period] ?? $date_ranges['day'];
-        $start_date = $range[0];
-        $end_date = $range[1];
+    public function get_analytics_data($period = 'day', $custom_start_date = null, $custom_end_date = null) {
+        // Handle custom date range
+        if ($period === 'custom' && $custom_start_date && $custom_end_date) {
+            $start_date = $custom_start_date;
+            $end_date = $custom_end_date;
+        } else {
+            // Use predefined date ranges
+            $date_ranges = [
+                'day' => ['7daysAgo', 'today'],
+                'week' => ['30daysAgo', 'today'],
+                'month' => ['90daysAgo', 'today'],
+                'all_time' => ['365daysAgo', 'today']
+            ];
+            
+            $range = $date_ranges[$period] ?? $date_ranges['day'];
+            $start_date = $range[0];
+            $end_date = $range[1];
+        }
         
         // Get all data
         $page_views_data = $this->get_page_views($start_date, $end_date);

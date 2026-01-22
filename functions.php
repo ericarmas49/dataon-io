@@ -45,6 +45,9 @@ function blankslate_enqueue() {
     wp_enqueue_style('bs-header', get_stylesheet_directory_uri() . '/assets/css/header.css');
     wp_enqueue_style('bs-content', get_stylesheet_directory_uri() . '/assets/css/content.css');
     wp_enqueue_script( 'jquery' );
+    
+    // AddEvent.js for calendar functionality
+    wp_enqueue_script( 'addevent', 'https://cdn.addevent.com/libs/atc/1.6.1/atc.min.js', array(), '1.6.1', true );
 }
 
 add_action( 'wp_footer', 'blankslate_footer' );
@@ -690,6 +693,8 @@ function get_analytics_data() {
     check_ajax_referer( 'analytics_nonce', 'nonce' );
     
     $period = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : 'day';
+    $start_date = isset($_POST['start_date']) ? sanitize_text_field($_POST['start_date']) : null;
+    $end_date = isset($_POST['end_date']) ? sanitize_text_field($_POST['end_date']) : null;
     
     // Check if GA4 is configured
     $ga4_enabled = get_option('ga4_enabled', false);
@@ -698,7 +703,13 @@ function get_analytics_data() {
     if ($ga4_enabled && !empty($ga4_property_id)) {
         // Try to get live data from GA4
         $ga4 = new GA4_Analytics();
-        $live_data = $ga4->get_analytics_data($period);
+        
+        // If custom period with dates, pass them along
+        if ($period === 'custom' && $start_date && $end_date) {
+            $live_data = $ga4->get_analytics_data($period, $start_date, $end_date);
+        } else {
+            $live_data = $ga4->get_analytics_data($period);
+        }
         
         if ($live_data && $live_data['connection_status'] === 'connected') {
             wp_send_json_success($live_data);
@@ -1049,6 +1060,28 @@ function myplguin_admin_page(){
     height: 20px;
     border: 3px solid #f3f3f3;
     border-top: 3px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 10px;
+}
+
+.period-loading {
+    text-align: center;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 5px;
+    margin: 10px 0;
+    color: #667eea;
+    font-weight: 500;
+}
+
+.period-loading::after {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #667eea;
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-left: 10px;
@@ -2480,3 +2513,131 @@ function render_indexing_health_meta_box($post) {
 
 // Initialize database tables on theme activation
 create_indexing_monitoring_tables();
+
+/**
+ * Generate "Add to Calendar" button using AddEvent.js
+ * 
+ * @param array $args {
+ *     Optional. Array of event arguments.
+ *     @type string $title       Event title (default: post title)
+ *     @type string $description Event description (default: post excerpt)
+ *     @type string $location    Event location
+ *     @type string $start       Start date/time (format: Y-m-d H:i:s or Y-m-d H:i)
+ *     @type string $end         End date/time (format: Y-m-d H:i:s or Y-m-d H:i)
+ *     @type string $timezone    Timezone (default: America/Los_Angeles)
+ *     @type string $button_text Button text (default: "Add to Calendar")
+ *     @type string $button_class Additional CSS classes
+ * }
+ * @return string HTML for the calendar button
+ */
+function dataon_add_to_calendar_button( $args = array() ) {
+    // Default values
+    $defaults = array(
+        'title'       => get_the_title(),
+        'description' => get_the_excerpt() ?: get_the_title(),
+        'location'    => '',
+        'start'       => '',
+        'end'         => '',
+        'timezone'    => 'America/Los_Angeles',
+        'button_text' => 'Add to Calendar',
+        'button_class' => ''
+    );
+    
+    $args = wp_parse_args( $args, $defaults );
+    
+    // If no start date provided, try to get from ACF fields
+    if ( empty( $args['start'] ) ) {
+        // Try common ACF field names
+        $event_date = get_field( 'event_date' );
+        $event_start = get_field( 'event_start' );
+        $start_date = get_field( 'start_date' );
+        
+        if ( $event_date ) {
+            $args['start'] = $event_date;
+        } elseif ( $event_start ) {
+            $args['start'] = $event_start;
+        } elseif ( $start_date ) {
+            $args['start'] = $start_date;
+        }
+    }
+    
+    // If no end date provided, try to get from ACF fields
+    if ( empty( $args['end'] ) ) {
+        $event_end = get_field( 'event_end' );
+        $end_date = get_field( 'end_date' );
+        
+        if ( $event_end ) {
+            $args['end'] = $event_end;
+        } elseif ( $end_date ) {
+            $args['end'] = $end_date;
+        } elseif ( $args['start'] ) {
+            // Default to 1 hour after start if no end time
+            $start_timestamp = strtotime( $args['start'] );
+            $args['end'] = date( 'Y-m-d H:i:s', $start_timestamp + 3600 );
+        }
+    }
+    
+    // Try to get location from ACF
+    if ( empty( $args['location'] ) ) {
+        $event_location = get_field( 'event_location' );
+        $location = get_field( 'location' );
+        
+        if ( $event_location ) {
+            $args['location'] = $event_location;
+        } elseif ( $location ) {
+            $args['location'] = $location;
+        }
+    }
+    
+    // Validate we have at least a start date
+    if ( empty( $args['start'] ) ) {
+        return ''; // Return empty if no date available
+    }
+    
+    // Format dates for AddEvent.js
+    // AddEvent expects: MM/DD/YYYY HH:MM AM/PM format
+    $start_timestamp = strtotime( $args['start'] );
+    $end_timestamp = strtotime( $args['end'] );
+    
+    $start_formatted = date( 'm/d/Y g:i A', $start_timestamp );
+    $end_formatted = date( 'm/d/Y g:i A', $end_timestamp );
+    
+    // Clean up description (remove HTML tags, limit length)
+    $description = wp_strip_all_tags( $args['description'] );
+    $description = wp_trim_words( $description, 50 );
+    
+    // Escape attributes
+    $title = esc_attr( $args['title'] );
+    $description = esc_attr( $description );
+    $location = esc_attr( $args['location'] );
+    $timezone = esc_attr( $args['timezone'] );
+    $button_text = esc_html( $args['button_text'] );
+    $button_class = esc_attr( $args['button_class'] );
+    
+    // Generate unique ID for this button
+    $button_id = 'add-to-calendar-' . uniqid();
+    
+    // Build the AddEvent button HTML
+    $html = sprintf(
+        '<div title="%s" class="addeventatc %s" id="%s">
+            %s
+            <span class="start">%s</span>
+            <span class="end">%s</span>
+            <span class="timezone">%s</span>
+            <span class="title">%s</span>
+            <span class="description">%s</span>%s
+        </div>',
+        esc_attr( $args['button_text'] ),
+        $button_class,
+        $button_id,
+        $button_text,
+        $start_formatted,
+        $end_formatted,
+        $timezone,
+        $title,
+        $description,
+        ! empty( $location ) ? '<span class="location">' . $location . '</span>' : ''
+    );
+    
+    return $html;
+}
