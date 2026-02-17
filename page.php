@@ -51,12 +51,12 @@ if(!empty($bgImg)) {
 </div>
             </div>
 
-<div id="main" class="main">
+<main id="main" class="main">
     <div class="container">
 
         <?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
 
-            <article id="post-<?php the_ID(); ?>" <?php post_class('container'); ?>>
+            <section id="post-<?php the_ID(); ?>" <?php post_class('container'); ?> aria-label="<?php echo esc_attr( get_the_title() ); ?>">
 
                 <header class="header">
 
@@ -74,14 +74,14 @@ if(!empty($bgImg)) {
 
                 </div>
 
-            </article>
+            </section>
 
             <?php if ( comments_open() && !post_password_required() ) { comments_template( '', true ); } ?>
 
         <?php endwhile; endif; ?>
 
     </div>
-</div>
+</main>
 
 <section class="container-fluid cta">
     <div class="container">

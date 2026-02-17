@@ -120,18 +120,18 @@ if(!empty($bgImg)) {
     </div>
 </div> -->
 
-<div id="main" class="main main-home">
+<main id="main" class="main main-home">
     <?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
-    <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+    <section id="post-<?php the_ID(); ?>" <?php post_class(); ?> aria-label="<?php echo esc_attr( get_the_title() ); ?>">
         <div class="entry-content" itemprop="mainContentOfPage">
             <?php if ( has_post_thumbnail() ) { the_post_thumbnail( 'full', array( 'itemprop' => 'image' ) ); } ?>
             <?php the_content(); ?>
             <div class="entry-links"><?php wp_link_pages(); ?></div>
         </div>
-    </article>
+    </section>
     <?php if ( comments_open() && !post_password_required() ) { comments_template( '', true ); } ?>
     <?php endwhile; endif; ?>
-</div>
+</main>
 
 <section class="container-fluid cta">
     <div class="container">

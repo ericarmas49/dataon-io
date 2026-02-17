@@ -47,6 +47,22 @@ function blankslate_enqueue() {
     wp_enqueue_script( 'jquery' );
 }
 
+/**
+ * ADA: Remove role="main" from embedded/content so only theme main landmark exists.
+ */
+add_filter( 'the_content', 'blankslate_strip_content_role_main', 20 );
+function blankslate_strip_content_role_main( $content ) {
+    return preg_replace( '/\s*role=["\']main["\']/i', '', $content );
+}
+
+/**
+ * ADA: Remove role="tabpanel" from img and other non-panel elements (e.g. slider markup).
+ */
+add_filter( 'the_content', 'blankslate_strip_tabpanel_from_non_panels', 20 );
+function blankslate_strip_tabpanel_from_non_panels( $content ) {
+    return preg_replace( '/<img([^>]*)\s+role=["\']tabpanel["\']([^>]*)>/i', '<img$1$2>', $content );
+}
+
 add_action( 'wp_footer', 'blankslate_footer' );
 function blankslate_footer() {
 ?>

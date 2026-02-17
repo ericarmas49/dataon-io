@@ -61,7 +61,7 @@
 
         <header id="header" role="banner">
 
-            <nav class="navbar navbar-expand-xl container" data-bs-theme="dark" role="navigation">
+            <div class="navbar navbar-expand-xl container" data-bs-theme="dark">
 
                 <div class="container">
 
@@ -80,38 +80,25 @@
                         data-bs-target="#navbarSupportedContent" 
                         aria-controls="navbarSupportedContent" 
                         aria-expanded="false" 
-                        aria-label="Toggle navigation">
+                        aria-label="Toggle navigation menu">
                         <span class="navbar-toggler-icon"></span>
                     </button>
-                    <!-- <a class="navbar-brand" href="#">Navbar</a> -->
-                    <?php
-                    // wp_nav_menu( array(
-                    //     'theme_location'    => 'main-menu',
-                    //     'depth'             => 2,
-                    //     'container'         => 'div',
-                    //     'container_class'   => 'collapse navbar-collapse',
-                    //     'container_id'      => 'bs-example-navbar-collapse-1',
-                    //     'menu_class'        => 'nav navbar-nav',
-                    //     'fallback_cb'       => 'WP_Bootstrap_Navwalker::fallback',
-                    //     'walker'            => new WP_Bootstrap_Navwalker(),
-                    // ) );
-                    ?>
                     <?php
                     $mainmenu = get_field('menu', 'option');
                     if(!empty($mainmenu)) :
                     ?>
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <nav class="collapse navbar-collapse" id="navbarSupportedContent" role="navigation" aria-label="Main navigation">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0" role="menubar">
                             <?php 
                             foreach($mainmenu as $m) {
                                 if(!empty($m['add_dropdown'])) {
                                     $dropdownMenuType = $m['dropdown_menu_type'];
-                                    echo '<li class="nav-item dropdown '.$dropdownMenuType.'">';
-                                        echo '<a class="nav-link dropdown-toggle" href="#" aria-haspopup="true" role="button" data-bs-toggle="dropdown" aria-expanded="false">'.$m['menu_label'].'</a>';
+                                    echo '<li class="nav-item dropdown '.$dropdownMenuType.'" role="none">';
+                                        echo '<a class="nav-link dropdown-toggle" href="#" aria-haspopup="true" aria-expanded="false" role="menuitem" data-bs-toggle="dropdown" id="menu-'.sanitize_title($m['menu_label']).'">'.esc_html($m['menu_label']).'</a>';
 
                                     if($dropdownMenuType === 'dropdown-megamenu') {
                                         echo '
-                                            <div class="dropdown-menu">
+                                            <div class="dropdown-menu" role="menu" aria-labelledby="menu-'.sanitize_title($m['menu_label']).'">
                                                 <div class="container-fluid">
                                                     <div class="row">';
                                                         $dropdownCol = $m['dropdown_mega_menu']['mega_menu_column'];
@@ -124,17 +111,17 @@
                                                                             echo '<div class="megamenu-listgroup">';
                                                                                 echo '<div class="title-container">';
                                                                                     if ($lg['listgroup_icon']) {
-                                                                                    echo '<img src="' . $lg['listgroup_icon'] .'" />';
+                                                                                    echo '<img src="' . esc_url($lg['listgroup_icon']) .'" alt="" />';
                                                                                     } else {
-                                                                                        echo '<img src="https://dataon.wpengine.com/wp-content/uploads/2023/07/4-solid-left-top-50x50-1.png" />';
+                                                                                        echo '<img src="https://dataon.wpengine.com/wp-content/uploads/2023/07/4-solid-left-top-50x50-1.png" alt="" />';
                                                                                     }
                                                                                     echo '<h5>'.$lg['listgroup_title'].'</h5>';
                                                                                 echo '</div>';
                                                                                 $listGroupLinks = $lg['listgroup_link'];                                                                                
                                                                                 if(!empty($listGroupLinks)) {
-                                                                                    echo '<ul>';
+                                                                                    echo '<ul role="group">';
                                                                                         foreach($listGroupLinks as $l) {
-                                                                                            echo '<li><a class="nav-link" href="'.$l['menu_link'].'">'.$l['menu_label'].'</a></li>';
+                                                                                            echo '<li role="none"><a class="nav-link" href="'.esc_url($l['menu_link']).'" role="menuitem">'.esc_html($l['menu_label']).'</a></li>';
                                                                                         }
                                                                                     echo '</ul>';
                                                                                 }
@@ -151,10 +138,10 @@
                                     } else {
                                         $dropdownMenu = $m['dropdown_menu'];
                                         if(!empty($dropdownMenu)) {
-                                            echo '<div class="dropdown-menu">';
-                                                echo '<ul>';
+                                            echo '<div class="dropdown-menu" role="menu" aria-labelledby="menu-'.sanitize_title($m['menu_label']).'">';
+                                                echo '<ul role="group">';
                                                     foreach($dropdownMenu as $dm) {
-                                                        echo '<li><a class="dropdown-item" href="'.$dm['menu_link'].'">'.$dm['menu_label'].'</a></li>';
+                                                        echo '<li role="none"><a class="dropdown-item" href="'.esc_url($dm['menu_link']).'" role="menuitem">'.esc_html($dm['menu_label']).'</a></li>';
                                                     }
                                                 echo '</ul>';
                                             echo '</div>';
@@ -162,8 +149,8 @@
                                     }
                                 
                                 } else {
-                                    echo '<li class="nav-item">';
-                                        echo '<a class="nav-link" href="'.$m['menu_link'].'">'.$m['menu_label'].'</a>';
+                                    echo '<li class="nav-item" role="none">';
+                                        echo '<a class="nav-link" href="'.esc_url($m['menu_link']).'" role="menuitem">'.esc_html($m['menu_label']).'</a>';
                                 }
 
                                 echo '</li>';
@@ -171,13 +158,11 @@
                             ?>
                         </ul>
                         <?php get_search_form(); ?>
-                    </div>
+                    </nav>
                     <?php endif; ?>
                 </div>
 
-                <!-- <a href="#" class="btn-search">Search</a> -->
-            
-            </nav>
+            </div>
         
         </header>
 
