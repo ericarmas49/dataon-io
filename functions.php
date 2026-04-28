@@ -63,11 +63,94 @@ function blankslate_strip_tabpanel_from_non_panels( $content ) {
     return preg_replace( '/<img([^>]*)\s+role=["\']tabpanel["\']([^>]*)>/i', '<img$1$2>', $content );
 }
 
+/**
+ * ADA: Remove Slick tab-pattern roles when carousel is not a true tab interface.
+ */
+add_filter( 'the_content', 'blankslate_strip_slick_tab_roles', 20 );
+function blankslate_strip_slick_tab_roles( $content ) {
+    // Remove tablist role from Slick dots containers.
+    $content = preg_replace(
+        '/(<ul[^>]*class=["\'][^"\']*slick-dots[^"\']*["\'][^>]*)\s+role=["\']tablist["\']([^>]*>)/i',
+        '$1$2',
+        $content
+    );
+
+    // Remove tab semantics from Slick pagination buttons.
+    $content = preg_replace(
+        '/(<button[^>]*id=["\']slick-slide-control[^"\']*["\'][^>]*)\s+role=["\']tab["\']/i',
+        '$1',
+        $content
+    );
+    $content = preg_replace(
+        '/(<button[^>]*id=["\']slick-slide-control[^"\']*["\'][^>]*)\s+aria-controls=["\'][^"\']*["\']/i',
+        '$1',
+        $content
+    );
+    $content = preg_replace(
+        '/(<button[^>]*id=["\']slick-slide-control[^"\']*["\'][^>]*)\s+aria-selected=["\'][^"\']*["\']/i',
+        '$1',
+        $content
+    );
+    $content = preg_replace(
+        '/(<button[^>]*id=["\']slick-slide-control[^"\']*["\'][^>]*)\s+tabindex=["\'][^"\']*["\']/i',
+        '$1',
+        $content
+    );
+
+    return $content;
+}
+
+/**
+ * ADA: Final HTML pass to remove invalid menu/tab roles injected outside the_content.
+ */
+function blankslate_ada_sanitize_html( $html ) {
+    // Navigation menu roles used for app menus, not site nav.
+    $html = preg_replace( '/\s+role=["\']menubar["\']/i', '', $html );
+    $html = preg_replace( '/\s+role=["\']menuitem["\']/i', '', $html );
+    $html = preg_replace( '/\s+role=["\']menu["\']/i', '', $html );
+    $html = preg_replace( '/\s+role=["\']none["\']/i', '', $html );
+    $html = preg_replace( '/\s+role=["\']group["\']/i', '', $html );
+
+    // Remove menu-popup state from non-menu nav anchors.
+    $html = preg_replace( '/(<a[^>]*class=["\'][^"\']*nav-link[^"\']*dropdown-toggle[^"\']*["\'][^>]*)\s+aria-haspopup=["\']true["\']/i', '$1', $html );
+
+    // Slick uses tab roles for dots; remove because these are not tabs.
+    $html = preg_replace( '/(<ul[^>]*class=["\'][^"\']*slick-dots[^"\']*["\'][^>]*)\s+role=["\']tablist["\']/i', '$1', $html );
+    $html = preg_replace( '/(<button[^>]*id=["\']slick-slide-control[^"\']*["\'][^>]*)\s+role=["\']tab["\']/i', '$1', $html );
+    $html = preg_replace( '/(<button[^>]*id=["\']slick-slide-control[^"\']*["\'][^>]*)\s+aria-controls=["\'][^"\']*["\']/i', '$1', $html );
+    $html = preg_replace( '/(<button[^>]*id=["\']slick-slide-control[^"\']*["\'][^>]*)\s+aria-selected=["\'][^"\']*["\']/i', '$1', $html );
+    $html = preg_replace( '/(<button[^>]*id=["\']slick-slide-control[^"\']*["\'][^>]*)\s+tabindex=["\'][^"\']*["\']/i', '$1', $html );
+    $html = preg_replace( '/(<img[^>]*?)\s+role=["\']tabpanel["\']([^>]*>)/i', '$1$2', $html );
+    $html = preg_replace( '/(<img[^>]*?)\s+aria-labelledby=["\'][^"\']*["\']([^>]*>)/i', '$1$2', $html );
+
+    return $html;
+}
+
+function blankslate_ada_output_buffer_start() {
+    if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+        return;
+    }
+    ob_start( 'blankslate_ada_sanitize_html' );
+}
+add_action( 'template_redirect', 'blankslate_ada_output_buffer_start', 0 );
+
 add_action( 'wp_footer', 'blankslate_footer' );
 function blankslate_footer() {
 ?>
     <script>
     jQuery(document).ready(function($) {
+        function normalizeSlickA11y() {
+            $('.slick-dots[role="tablist"]').removeAttr('role');
+            $('button[id^="slick-slide-control"][role="tab"]').removeAttr('role aria-controls aria-selected tabindex');
+            $('img[role="tabpanel"]').removeAttr('role aria-labelledby tabindex');
+        }
+
+        // Slick can inject markup after load; normalize immediately and on slider lifecycle events.
+        normalizeSlickA11y();
+        $(document).on('init reInit afterChange setPosition', '.slick-slider', normalizeSlickA11y);
+        setTimeout(normalizeSlickA11y, 300);
+        setTimeout(normalizeSlickA11y, 1200);
+
         var deviceAgent = navigator.userAgent.toLowerCase();
         if (deviceAgent.match(/(iphone|ipod|ipad)/)) {
             $("html").addClass("ios");

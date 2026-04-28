@@ -12,24 +12,16 @@
 
                 <div class="footer-nav col-lg-7">
                     <div class="footer-menu block-1">
-                        <nav role="navigation">
-                            <?php wp_nav_menu( array('menu' => 'footer-block-1', 'container_aria_label' => '') ); ?>
-                        </nav>
+                        <?php wp_nav_menu( array('menu' => 'footer-block-1', 'container_aria_label' => '') ); ?>
                     </div>
                     <div class="footer-menu block-2">
-                        <nav role="navigation">
-                            <?php wp_nav_menu( array('menu' => 'footer-block-2',) ); ?>
-                        </nav>
+                        <?php wp_nav_menu( array('menu' => 'footer-block-2',) ); ?>
                     </div>
                     <div class="footer-menu block-3">
-                        <nav role="navigation">
-                            <?php wp_nav_menu( array('menu' => 'footer-block-3',) ); ?>
-                        </nav>
+                        <?php wp_nav_menu( array('menu' => 'footer-block-3',) ); ?>
                     </div>
                     <div class="footer-menu block-4">
-                        <nav role="navigation">
-                            <?php wp_nav_menu( array('menu' => 'footer-block-4',) ); ?>
-                        </nav>
+                        <?php wp_nav_menu( array('menu' => 'footer-block-4',) ); ?>
                     </div>
                 </div>
                 <div class="footer-contact col-lg-3">

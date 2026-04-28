@@ -1,6 +1,6 @@
 <?php get_header(); ?>
 
-<div id="main" class="main">
+<main id="main" class="main">
 	<div class="container">
 		<header class="header">
 			<?php the_post(); ?>
@@ -41,6 +41,6 @@
 			</div>
 		</div>
 	</div>
-</div>
+</main>
 
 <?php get_footer(); ?>

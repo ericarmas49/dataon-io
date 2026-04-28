@@ -88,17 +88,17 @@
                     if(!empty($mainmenu)) :
                     ?>
                     <nav class="collapse navbar-collapse" id="navbarSupportedContent" role="navigation" aria-label="Main navigation">
-                        <ul class="navbar-nav me-auto mb-2 mb-lg-0" role="menubar">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                             <?php 
                             foreach($mainmenu as $m) {
                                 if(!empty($m['add_dropdown'])) {
                                     $dropdownMenuType = $m['dropdown_menu_type'];
-                                    echo '<li class="nav-item dropdown '.$dropdownMenuType.'" role="none">';
-                                        echo '<a class="nav-link dropdown-toggle" href="#" aria-haspopup="true" aria-expanded="false" role="menuitem" data-bs-toggle="dropdown" id="menu-'.sanitize_title($m['menu_label']).'">'.esc_html($m['menu_label']).'</a>';
+                                    echo '<li class="nav-item dropdown '.$dropdownMenuType.'">';
+                                        echo '<a class="nav-link dropdown-toggle" href="#" aria-expanded="false" data-bs-toggle="dropdown" id="menu-'.sanitize_title($m['menu_label']).'">'.esc_html($m['menu_label']).'</a>';
 
                                     if($dropdownMenuType === 'dropdown-megamenu') {
                                         echo '
-                                            <div class="dropdown-menu" role="menu" aria-labelledby="menu-'.sanitize_title($m['menu_label']).'">
+                                            <div class="dropdown-menu" aria-labelledby="menu-'.sanitize_title($m['menu_label']).'">
                                                 <div class="container-fluid">
                                                     <div class="row">';
                                                         $dropdownCol = $m['dropdown_mega_menu']['mega_menu_column'];
@@ -119,9 +119,9 @@
                                                                                 echo '</div>';
                                                                                 $listGroupLinks = $lg['listgroup_link'];                                                                                
                                                                                 if(!empty($listGroupLinks)) {
-                                                                                    echo '<ul role="group">';
+                                                                                    echo '<ul>';
                                                                                         foreach($listGroupLinks as $l) {
-                                                                                            echo '<li role="none"><a class="nav-link" href="'.esc_url($l['menu_link']).'" role="menuitem">'.esc_html($l['menu_label']).'</a></li>';
+                                                                                            echo '<li><a class="nav-link" href="'.esc_url($l['menu_link']).'">'.esc_html($l['menu_label']).'</a></li>';
                                                                                         }
                                                                                     echo '</ul>';
                                                                                 }
@@ -138,10 +138,10 @@
                                     } else {
                                         $dropdownMenu = $m['dropdown_menu'];
                                         if(!empty($dropdownMenu)) {
-                                            echo '<div class="dropdown-menu" role="menu" aria-labelledby="menu-'.sanitize_title($m['menu_label']).'">';
-                                                echo '<ul role="group">';
+                                            echo '<div class="dropdown-menu" aria-labelledby="menu-'.sanitize_title($m['menu_label']).'">';
+                                                echo '<ul>';
                                                     foreach($dropdownMenu as $dm) {
-                                                        echo '<li role="none"><a class="dropdown-item" href="'.esc_url($dm['menu_link']).'" role="menuitem">'.esc_html($dm['menu_label']).'</a></li>';
+                                                        echo '<li><a class="dropdown-item" href="'.esc_url($dm['menu_link']).'">'.esc_html($dm['menu_label']).'</a></li>';
                                                     }
                                                 echo '</ul>';
                                             echo '</div>';
@@ -149,8 +149,8 @@
                                     }
                                 
                                 } else {
-                                    echo '<li class="nav-item" role="none">';
-                                        echo '<a class="nav-link" href="'.esc_url($m['menu_link']).'" role="menuitem">'.esc_html($m['menu_label']).'</a>';
+                                    echo '<li class="nav-item">';
+                                        echo '<a class="nav-link" href="'.esc_url($m['menu_link']).'">'.esc_html($m['menu_label']).'</a>';
                                 }
 
                                 echo '</li>';

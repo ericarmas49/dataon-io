@@ -51,7 +51,7 @@ if(!empty($bgImg)) {
 	</div>
 </div>
 
-<div id="main" class="main main-single container">
+<main id="main" class="main main-single container">
 	<?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
 					
 		<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
@@ -65,7 +65,7 @@ if(!empty($bgImg)) {
 	<?php //if ( comments_open() && !post_password_required() ) { comments_template( '', true ); } ?>
 	<?php endwhile; endif; ?>
 
-</div>
+</main>
 
 
 <?php get_template_part('section', 'home-cta'); ?>

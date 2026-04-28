@@ -1,6 +1,6 @@
 <?php get_header(); ?>
 
-<div id="main" class="main main-archive">
+<main id="main" class="main main-archive">
 	<div class="container">
 		<header class="header">
 			<h1 class="entry-title" itemprop="name"><?php the_archive_title(); ?></h1>
@@ -44,6 +44,6 @@
 			</div>
 		</div>
 	</div>
-</div>
+</main>
 
 <?php get_footer(); ?>

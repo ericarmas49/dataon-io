@@ -1,7 +1,7 @@
 <?php get_header(); ?>
 <?php global $post; ?>
 
-<div id="main" class="main">
+<main id="main" class="main">
 	<div class="container">
 		<?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
 		<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
@@ -29,6 +29,6 @@
 		<?php comments_template(); ?>
 		<?php endwhile; endif; ?>
 	</div>
-</div>
+</main>
 
 <?php get_footer(); ?>

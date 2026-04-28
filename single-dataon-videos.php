@@ -10,7 +10,7 @@
 </style>
 
 
-<div id="main" class="main main-single videos">
+<main id="main" class="main main-single videos">
 	<div class="container">
 		<div class="row">
 			<?php $postLayout = get_field('post_layout'); ?>
@@ -58,6 +58,6 @@
 
 		</div>
 	</div>
-</div>
+</main>
 
 <?php get_footer(); ?>

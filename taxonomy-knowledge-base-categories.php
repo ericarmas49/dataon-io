@@ -109,7 +109,7 @@ if(!empty($bgImg)) {
 ?>
 
 
-<div id="main" class="main main-single">
+<main id="main" class="main main-single">
     <div class="container">
         <div class="row">
             <div class="col-12 col-lg-12">
@@ -161,7 +161,7 @@ if(!empty($bgImg)) {
             </div>
         </div>
     </div>
-</div>
+</main>
 
 
 <?php get_template_part('section', 'home-cta'); ?>

@@ -8,7 +8,7 @@
 
 <?php get_header(); ?>
 
-<div id="main" class="main main-archive esting">
+<main id="main" class="main main-archive esting">
 	
 	<div class="container news-blog">
 <!-- 
@@ -433,7 +433,7 @@ display_terms_hierarchy();
 
 		</style>
 
-	</div>
+	</main>
 
 
 <?php get_footer(); ?>

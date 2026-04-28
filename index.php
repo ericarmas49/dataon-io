@@ -1,6 +1,6 @@
 <?php get_header(); ?>
 
-<div id="main" class="main main-archive">
+<main id="main" class="main main-archive">
 	
 	<div class="container news-blog">
 
@@ -446,7 +446,7 @@
 
 		</style>
 
-	</div>
+	</main>
 
 
 <?php get_footer(); ?>

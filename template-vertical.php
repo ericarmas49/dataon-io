@@ -96,24 +96,24 @@ if(!empty($bgImg)) {
 
 
 
-<div id="main" class="main main-single">
+<main id="main" class="main main-single">
     <div class="container">
         <div class="row">
             <div class="col-12 col-lg-12">
                 <?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
-                <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+                <section id="post-<?php the_ID(); ?>" <?php post_class(); ?> aria-label="<?php echo esc_attr( get_the_title() ); ?>">
                     <div class="entry-content" itemprop="mainContentOfPage">
                         <?php if ( has_post_thumbnail() ) { the_post_thumbnail( 'full', array( 'itemprop' => 'image' ) ); } ?>
                         <?php the_content(); ?>
                         <div class="entry-links"><?php wp_link_pages(); ?></div>
                     </div>
-                </article>
+                </section>
                 <?php if ( comments_open() && !post_password_required() ) { comments_template( '', true ); } ?>
                 <?php endwhile; endif; ?>
             </div>
         </div>
     </div>
-</div>
+</main>
 
 <?php get_template_part('section', 'home-cta'); ?>
 

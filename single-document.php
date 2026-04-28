@@ -25,7 +25,7 @@ article .mod-featured-img
 
 
 
-<div id="main" class="main main-single document">
+<main id="main" class="main main-single document">
 	<div class="container">
 		<div class="row">
 			<?php $postLayout = get_field('post_layout'); ?>
@@ -50,6 +50,6 @@ article .mod-featured-img
 
 		</div>
 	</div>
-</div>
+</main>
 
 <?php get_footer(); ?>

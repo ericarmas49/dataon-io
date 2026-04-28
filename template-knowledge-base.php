@@ -76,13 +76,13 @@ if(!empty($bgImg)) {
 
 
 
-<div id="main" class="main main-single">
+<main id="main" class="main main-single">
     <div class="container">
         <div class="row">
             <div class="col-12 col-lg-12">
 
                 
-                <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+                <section id="post-<?php the_ID(); ?>" <?php post_class(); ?> aria-label="<?php echo esc_attr( get_the_title() ); ?>">
 
                     <div class="entry-content" itemprop="mainContentOfPage">
                        
@@ -123,13 +123,13 @@ if(!empty($bgImg)) {
 
                     </div>
 
-                </article>
+                </section>
 
 
             </div>
         </div>
     </div>
-</div>
+</main>
 
 
 

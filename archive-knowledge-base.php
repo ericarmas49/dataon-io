@@ -80,7 +80,7 @@ table
 
 </div>
 
-<div id="main" class="main main-single">
+<main id="main" class="main main-single">
     <div class="container">
         <div class="row">
             <div class="col-12 col-lg-12">
@@ -607,7 +607,7 @@ table
             </div>
         </div>
     </div>
-</div>
+</main>
 
 
 

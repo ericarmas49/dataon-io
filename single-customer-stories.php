@@ -117,7 +117,7 @@ h1
 <div class="col-12 col-img" style='background-position: center; background-image: url("<?php echo $featuredImage; ?>");'></div>
 
 
-<div id="main" class="main main-single container">
+<main id="main" class="main main-single container">
 	<?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
 					
 		<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
@@ -132,6 +132,6 @@ h1
 
 	<?php endwhile; endif; ?>
 
-</div>
+</main>
 
 <?php get_footer(); ?>
