@@ -62,6 +62,23 @@
 <noscript><a href="https://www.livechat.com/chat-with/9389740/" rel="nofollow">Chat with us</a>, powered by <a href="https://www.livechat.com/?welcome" rel="noopener nofollow" target="_blank">LiveChat</a></noscript>
 <!-- End of LiveChat code -->
 
+<script>
+    function liveChat() {
+        if (window.LiveChatWidget && typeof window.LiveChatWidget.call === 'function') {
+            window.LiveChatWidget.call('maximize');
+            return false;
+        }
+
+        if (window.LiveChatWidget && typeof window.LiveChatWidget.on === 'function') {
+            window.LiveChatWidget.on('ready', function () {
+                window.LiveChatWidget.call('maximize');
+            });
+        }
+
+        return false;
+    }
+</script>
+
 
 
 </body>

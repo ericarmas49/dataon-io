@@ -621,64 +621,7 @@ table
 
 
 
-<section class="container-fluid cta">
-    <div class="container">
-        <div class="row cta">
-            <div class="col-12 col-lg-6 col-md-12 cta-content">
-
-                <h4>No one knows Microsoft hybrid cloud like DataON</h4>
-                <p>We can help you make the leap to hybrid cloud</p>
-
-            </div>
-
-
-            <div class="col-12 col-lg-6 col-md-12 cta-items">
-
-                <div class="row">
-
-                <div class="col-12 col-lg-3 col-md-6 col-sm-12 call">
-                    <a href="tel:1-888-726-8588">
-                        <div class="cta-icon">
-                            <img src="https://dataon.wpengine.com/wp-content/uploads/2023/12/Call.svg" />
-                            Call DataON
-                        </div>
-                    </a>
-                </div>
-
-                
-                <div class="col-12 col-lg-3 col-md-6 col-sm-12 chat">
-                    <a href="#">
-                            <div class="cta-icon">
-                                <img src="https://dataon.wpengine.com/wp-content/uploads/2023/12/Chat-now.svg" />
-                                Chat Now
-                            </div>
-                    </a>
-                </div>
-                
-                <div class="col-12 col-lg-3 col-md-6 col-sm-12 email-call">
-                    <a href="mailto:sales@dataonstorage.com?subject=Please Contact Me about Azure Hybrid Cloud" target="_blank">
-                        <div class="cta-icon">
-                            <img src="https://dataon.wpengine.com/wp-content/uploads/2023/12/Email-Sales.svg" />
-                            Email Sales
-                        </div>
-                    </a>
-                </div>
-
-                <div class="col-12 col-lg-3 col-md-6 col-sm-12 email-support">
-                    <a href="mailto:support@dataonstorage.com?subject=I Need Help with my Azure Hybrid Cloud Deployment" target="_blank">
-                        <div class="cta-icon">
-                            <img src="https://dataon.wpengine.com/wp-content/uploads/2023/12/Email-Support.svg" />
-                            Email Support
-                        </div>
-                    </a>
-                </div>
-
-                </div>
-
-            </div>
-        </div>
-    </div>
-</section>
+<?php get_template_part('section', 'home-cta'); ?>
 
 
 <?php get_footer(); ?>

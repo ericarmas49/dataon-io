@@ -47,6 +47,10 @@
     padding: 2rem;
     border-radius: 0;
 }
+/* Hide 1st column in DataON Solutions & Services megamenu only */
+li:has(#menu-dataon-solutions-services) .dropdown-menu .row > div:first-child {
+    display: none;
+}
 .megamenu-listgroup {
     margin: 2rem 0 5rem 0rem;
 }
