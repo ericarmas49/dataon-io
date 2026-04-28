@@ -2067,41 +2067,70 @@ function dataon_webmcp_footer_script() {
     ?>
     <script>
     (function () {
-      if (!navigator.modelContext || typeof navigator.modelContext.provideContext !== 'function') {
+      if (!navigator.modelContext) {
         return;
       }
 
-      navigator.modelContext.provideContext({
-        tools: [
-          {
-            name: 'open_page',
-            description: 'Open a relative URL from this site.',
-            inputSchema: {
-              type: 'object',
-              properties: { path: { type: 'string', description: 'Relative site path beginning with /' } },
-              required: ['path']
-            },
-            execute: async function (input) {
-              var path = (input && input.path) ? input.path : '/';
-              window.location.href = path;
-              return { ok: true, navigatedTo: path };
-            }
+      var tools = [
+        {
+          name: 'open_page',
+          description: 'Open a relative URL from this site.',
+          inputSchema: {
+            type: 'object',
+            properties: { path: { type: 'string', description: 'Relative site path beginning with /' } },
+            required: ['path']
           },
-          {
-            name: 'get_page_metadata',
-            description: 'Return title, URL and meta description for the current page.',
-            inputSchema: { type: 'object', properties: {} },
-            execute: async function () {
-              var metaDescription = document.querySelector('meta[name="description"]');
-              return {
-                title: document.title,
-                url: window.location.href,
-                description: metaDescription ? metaDescription.content : ''
-              };
-            }
+          execute: async function (input) {
+            var path = (input && input.path) ? input.path : '/';
+            window.location.href = path;
+            return { ok: true, navigatedTo: path };
           }
-        ]
-      });
+        },
+        {
+          name: 'get_page_metadata',
+          description: 'Return title, URL and meta description for the current page.',
+          inputSchema: { type: 'object', properties: {} },
+          execute: async function () {
+            var metaDescription = document.querySelector('meta[name="description"]');
+            return {
+              title: document.title,
+              url: window.location.href,
+              description: metaDescription ? metaDescription.content : ''
+            };
+          }
+        },
+        {
+          name: 'search_site',
+          description: 'Search this site and navigate to the results page.',
+          inputSchema: {
+            type: 'object',
+            properties: { query: { type: 'string', description: 'Search query string' } },
+            required: ['query']
+          },
+          execute: async function (input) {
+            var query = (input && input.query) ? String(input.query) : '';
+            var target = '/?s=' + encodeURIComponent(query);
+            window.location.href = target;
+            return { ok: true, navigatedTo: target };
+          }
+        }
+      ];
+
+      // Always provide context for scanners/agents expecting provideContext on load.
+      if (typeof navigator.modelContext.provideContext === 'function') {
+        navigator.modelContext.provideContext({ tools: tools });
+      }
+
+      // Also register tools individually when supported.
+      if (typeof navigator.modelContext.registerTool === 'function') {
+        var controller = new AbortController();
+        tools.forEach(function (tool) {
+          navigator.modelContext.registerTool(tool, { signal: controller.signal });
+        });
+        window.addEventListener('pagehide', function () {
+          controller.abort();
+        }, { once: true });
+      }
     })();
     </script>
     <?php

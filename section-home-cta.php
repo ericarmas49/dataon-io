@@ -2,7 +2,7 @@
     <div class="container">
         <div class="row cta">
             <div class="col-12 col-lg-6 col-md-12 cta-content">
-                <h4>No one knows Microsoft hybrid cloud like DataON</h4>
+                <h4>No one knows Microsoft Azure local like DataON</h4>
                 <p role="heading" aria-label="We can help">We can help you make the leap to hybrid cloud</p>
             </div>
 
