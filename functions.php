@@ -1834,3 +1834,276 @@ function prefix_disable_gutenberg($current_status, $post_type)
     if ($post_type === 'knowledge-base') return false;
     return $current_status;
 }
+
+/**
+ * Agent readiness support:
+ * - Markdown negotiation for HTML pages
+ * - Content Signals in robots.txt
+ * - .well-known discovery endpoints
+ */
+
+function dataon_request_path() {
+    $path = isset( $_SERVER['REQUEST_URI'] ) ? wp_parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ) : '/';
+    return untrailingslashit( $path ? $path : '/' );
+}
+
+function dataon_accepts_markdown() {
+    $accept = isset( $_SERVER['HTTP_ACCEPT'] ) ? strtolower( (string) $_SERVER['HTTP_ACCEPT'] ) : '';
+    return strpos( $accept, 'text/markdown' ) !== false;
+}
+
+function dataon_html_to_markdown( $html ) {
+    $markdown = $html;
+
+    // Remove non-content sections first.
+    $markdown = preg_replace( '#<(script|style|noscript)[^>]*>.*?</\1>#is', '', $markdown );
+    $markdown = preg_replace( '#<head[^>]*>.*?</head>#is', '', $markdown );
+
+    // Headings.
+    for ( $i = 6; $i >= 1; $i-- ) {
+        $markdown = preg_replace( '#<h' . $i . '[^>]*>(.*?)</h' . $i . '>#is', "\n" . str_repeat( '#', $i ) . " $1\n\n", $markdown );
+    }
+
+    // Basic formatting.
+    $markdown = preg_replace( '#<(strong|b)[^>]*>(.*?)</\1>#is', '**$2**', $markdown );
+    $markdown = preg_replace( '#<(em|i)[^>]*>(.*?)</\1>#is', '*$2*', $markdown );
+    $markdown = preg_replace( '#<a[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>#is', '[$2]($1)', $markdown );
+    $markdown = preg_replace( '#<li[^>]*>(.*?)</li>#is', "- $1\n", $markdown );
+
+    // Block separators.
+    $markdown = preg_replace( '#<(br|br/)\s*>#i', "\n", $markdown );
+    $markdown = preg_replace( '#</(p|div|section|article|main|header|footer|ul|ol|table|tr)>#i', "\n\n", $markdown );
+
+    // Strip any remaining tags and normalize spacing.
+    $markdown = wp_strip_all_tags( $markdown, false );
+    $markdown = html_entity_decode( $markdown, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+    $markdown = preg_replace( "/\n{3,}/", "\n\n", $markdown );
+    $markdown = trim( $markdown );
+
+    return $markdown !== '' ? $markdown . "\n" : "# " . get_bloginfo( 'name' ) . "\n";
+}
+
+function dataon_markdown_negotiate_template() {
+    if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+        return;
+    }
+
+    if ( $_SERVER['REQUEST_METHOD'] !== 'GET' ) {
+        return;
+    }
+
+    if ( ! dataon_accepts_markdown() ) {
+        return;
+    }
+
+    $path = dataon_request_path();
+    if ( strpos( $path, '/.well-known/' ) === 0 || $path === '/robots.txt' || is_feed() ) {
+        return;
+    }
+
+    if ( headers_sent() ) {
+        return;
+    }
+
+    ob_start(
+        function( $buffer ) {
+            $markdown = dataon_html_to_markdown( $buffer );
+            $token_count = str_word_count( wp_strip_all_tags( $markdown ) );
+            header( 'Content-Type: text/markdown; charset=UTF-8' );
+            header( 'X-Markdown-Tokens: ' . (int) $token_count );
+            return $markdown;
+        }
+    );
+}
+add_action( 'template_redirect', 'dataon_markdown_negotiate_template', 0 );
+
+function dataon_content_signal_line() {
+    return 'Content-Signal: ai-train=no, search=yes, ai-input=no';
+}
+
+function dataon_robots_content_signals( $output, $public ) {
+    $line = dataon_content_signal_line();
+    if ( strpos( $output, $line ) === false ) {
+        $output = rtrim( $output ) . "\n" . $line . "\n";
+    }
+    return $output;
+}
+add_filter( 'robots_txt', 'dataon_robots_content_signals', 10, 2 );
+
+function dataon_sha256_b64( $content ) {
+    return 'sha256-' . base64_encode( hash( 'sha256', $content, true ) );
+}
+
+function dataon_json_response( $payload, $content_type = 'application/json; charset=UTF-8' ) {
+    status_header( 200 );
+    header( 'Content-Type: ' . $content_type );
+    echo wp_json_encode( $payload, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT );
+    exit;
+}
+
+function dataon_text_response( $content, $content_type = 'text/plain; charset=UTF-8' ) {
+    status_header( 200 );
+    header( 'Content-Type: ' . $content_type );
+    echo $content;
+    exit;
+}
+
+function dataon_handle_well_known_endpoints() {
+    if ( is_admin() || wp_doing_ajax() ) {
+        return;
+    }
+
+    $path = dataon_request_path();
+    $home = home_url( '/' );
+    $api_base = home_url( '/wp-json/' );
+    $issuer = home_url( '/' );
+
+    if ( $path === '/.well-known/api-catalog' ) {
+        $payload = array(
+            'linkset' => array(
+                array(
+                    'anchor' => $api_base,
+                    'service-desc' => array(
+                        array( 'href' => home_url( '/wp-json/' ) ),
+                    ),
+                    'service-doc' => array(
+                        array( 'href' => home_url( '/wp-json/' ) ),
+                    ),
+                    'status' => array(
+                        array( 'href' => home_url( '/wp-json/' ) ),
+                    ),
+                ),
+            ),
+        );
+        dataon_json_response( $payload, 'application/linkset+json; charset=UTF-8' );
+    }
+
+    if ( $path === '/.well-known/openid-configuration' || $path === '/.well-known/oauth-authorization-server' ) {
+        $payload = array(
+            'issuer' => untrailingslashit( $issuer ),
+            'authorization_endpoint' => home_url( '/wp-login.php' ),
+            'token_endpoint' => home_url( '/wp-json/jwt-auth/v1/token' ),
+            'jwks_uri' => home_url( '/.well-known/jwks.json' ),
+            'grant_types_supported' => array( 'authorization_code', 'client_credentials', 'refresh_token' ),
+            'response_types_supported' => array( 'code' ),
+            'token_endpoint_auth_methods_supported' => array( 'client_secret_basic', 'client_secret_post' ),
+            'scopes_supported' => array( 'openid', 'profile', 'email', 'read', 'write' ),
+        );
+        dataon_json_response( $payload );
+    }
+
+    if ( $path === '/.well-known/oauth-protected-resource' ) {
+        $payload = array(
+            'resource' => untrailingslashit( $home ),
+            'authorization_servers' => array( untrailingslashit( $issuer ) ),
+            'scopes_supported' => array( 'read', 'write', 'openid', 'profile', 'email' ),
+            'bearer_methods_supported' => array( 'header' ),
+            'resource_documentation' => home_url( '/wp-json/' ),
+        );
+        dataon_json_response( $payload );
+    }
+
+    if ( $path === '/.well-known/mcp/server-card.json' ) {
+        $payload = array(
+            'serverInfo' => array(
+                'name' => get_bloginfo( 'name' ) . ' MCP',
+                'version' => '1.0.0',
+            ),
+            'transports' => array(
+                array(
+                    'type' => 'http',
+                    'url' => home_url( '/wp-json/' ),
+                ),
+            ),
+            'capabilities' => array(
+                'tools' => true,
+                'resources' => true,
+                'prompts' => false,
+            ),
+        );
+        dataon_json_response( $payload );
+    }
+
+    $skill_markdown = "# Website Overview\n\nUse this skill to understand key website pages and navigation.\n";
+    $skill_actions = "# Website Actions\n\nUse this skill to discover read-only website actions exposed by tools.\n";
+
+    if ( $path === '/.well-known/agent-skills/site-overview.md' ) {
+        dataon_text_response( $skill_markdown, 'text/markdown; charset=UTF-8' );
+    }
+
+    if ( $path === '/.well-known/agent-skills/site-actions.md' ) {
+        dataon_text_response( $skill_actions, 'text/markdown; charset=UTF-8' );
+    }
+
+    if ( $path === '/.well-known/agent-skills/index.json' ) {
+        $payload = array(
+            '$schema' => 'https://agentskills.io/schemas/agent-skills-index.v0.2.0.json',
+            'skills' => array(
+                array(
+                    'name' => 'site-overview',
+                    'type' => 'knowledge',
+                    'description' => 'High-level website context and navigation',
+                    'url' => home_url( '/.well-known/agent-skills/site-overview.md' ),
+                    'sha256' => dataon_sha256_b64( $skill_markdown ),
+                ),
+                array(
+                    'name' => 'site-actions',
+                    'type' => 'tooling',
+                    'description' => 'Action-oriented guidance for interacting with this site',
+                    'url' => home_url( '/.well-known/agent-skills/site-actions.md' ),
+                    'sha256' => dataon_sha256_b64( $skill_actions ),
+                ),
+            ),
+        );
+        dataon_json_response( $payload );
+    }
+}
+add_action( 'template_redirect', 'dataon_handle_well_known_endpoints', 1 );
+
+function dataon_webmcp_footer_script() {
+    if ( is_admin() ) {
+        return;
+    }
+    ?>
+    <script>
+    (function () {
+      if (!navigator.modelContext || typeof navigator.modelContext.provideContext !== 'function') {
+        return;
+      }
+
+      navigator.modelContext.provideContext({
+        tools: [
+          {
+            name: 'open_page',
+            description: 'Open a relative URL from this site.',
+            inputSchema: {
+              type: 'object',
+              properties: { path: { type: 'string', description: 'Relative site path beginning with /' } },
+              required: ['path']
+            },
+            execute: async function (input) {
+              var path = (input && input.path) ? input.path : '/';
+              window.location.href = path;
+              return { ok: true, navigatedTo: path };
+            }
+          },
+          {
+            name: 'get_page_metadata',
+            description: 'Return title, URL and meta description for the current page.',
+            inputSchema: { type: 'object', properties: {} },
+            execute: async function () {
+              var metaDescription = document.querySelector('meta[name="description"]');
+              return {
+                title: document.title,
+                url: window.location.href,
+                description: metaDescription ? metaDescription.content : ''
+              };
+            }
+          }
+        ]
+      });
+    })();
+    </script>
+    <?php
+}
+add_action( 'wp_footer', 'dataon_webmcp_footer_script', 99 );
