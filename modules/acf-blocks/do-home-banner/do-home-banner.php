@@ -33,8 +33,19 @@ $mobileText = get_field('mobile_text');
 $mobileButtonLabel = get_field('mobile_button_label');
 $mobileButtonLink = get_field('mobile_button_link');
 
-if(empty($bgImage)) {
-	$bgImage = "";
+$bg_image_url = '';
+if ( ! empty( $bgImage ) ) {
+	if ( is_array( $bgImage ) ) {
+		$bg_image_url = isset( $bgImage['url'] ) ? $bgImage['url'] : '';
+	} elseif ( is_numeric( $bgImage ) ) {
+		$att = wp_get_attachment_image_url( (int) $bgImage, 'full' );
+		$bg_image_url = $att ? $att : '';
+	} else {
+		$bg_image_url = (string) $bgImage;
+	}
+}
+if ( $bg_image_url === '' ) {
+	$bg_image_url = content_url( 'uploads/2023/11/home_bg_2500.jpeg' );
 }
 
 ?>
@@ -149,8 +160,8 @@ if(empty($bgImage)) {
 }
 
 
-	#<?php echo $id; ?> {   
-		background-image: url("wp-content/uploads/2023/11/home_bg_2500.jpeg"); 
+	#<?php echo esc_attr( $id ); ?> {   
+		background-image: url("<?php echo esc_url( $bg_image_url ); ?>"); 
 		background-size: cover;
 
 	}
