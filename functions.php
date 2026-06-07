@@ -115,6 +115,7 @@ function blankslate_ada_sanitize_html( $html ) {
     $html = preg_replace( '/(<a[^>]*class=["\'][^"\']*nav-link[^"\']*dropdown-toggle[^"\']*["\'][^>]*)\s+aria-haspopup=["\']true["\']/i', '$1', $html );
 
     // Slick uses tab roles for dots; remove because these are not tabs.
+    $html = preg_replace( '/\s+id=(["\'])\1/i', '', $html );
     $html = preg_replace( '/(<ul[^>]*class=["\'][^"\']*slick-dots[^"\']*["\'][^>]*)\s+role=["\']tablist["\']/i', '$1', $html );
     $html = preg_replace( '/(<button[^>]*id=["\']slick-slide-control[^"\']*["\'][^>]*)\s+role=["\']tab["\']/i', '$1', $html );
     $html = preg_replace( '/(<button[^>]*id=["\']slick-slide-control[^"\']*["\'][^>]*)\s+aria-controls=["\'][^"\']*["\']/i', '$1', $html );
@@ -140,6 +141,7 @@ function blankslate_footer() {
     <script>
     jQuery(document).ready(function($) {
         function normalizeSlickA11y() {
+            $('[id=""]').removeAttr('id');
             $('.slick-dots[role="tablist"]').removeAttr('role');
             $('button[id^="slick-slide-control"][role="tab"]').removeAttr('role aria-controls aria-selected tabindex');
             $('img[role="tabpanel"]').removeAttr('role aria-labelledby tabindex');
@@ -223,7 +225,7 @@ if ( !function_exists( 'blankslate_wp_body_open' ) ) {
 
 add_action( 'wp_body_open', 'blankslate_skip_link', 5 );
 function blankslate_skip_link() {
-    echo '<a href="#content" class="skip-link screen-reader-text">' . esc_html__( 'Skip to the content', 'blankslate' ) . '</a>';
+    echo '<nav aria-label="' . esc_attr__( 'Skip links', 'blankslate' ) . '"><a href="#main" class="skip-link screen-reader-text">' . esc_html__( 'Skip to the content', 'blankslate' ) . '</a></nav>';
 }
 
 add_filter( 'the_content_more_link', 'blankslate_read_more_link' );
