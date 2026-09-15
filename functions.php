@@ -44,6 +44,7 @@ function blankslate_enqueue() {
     wp_enqueue_style( 'blankslate-style', get_stylesheet_uri() );
     wp_enqueue_style('bs-header', get_stylesheet_directory_uri() . '/assets/css/header.css');
     wp_enqueue_style('bs-content', get_stylesheet_directory_uri() . '/assets/css/content.css');
+    wp_enqueue_style( 'do-icon-link-bar', get_stylesheet_directory_uri() . '/assets/css/icon-link-bar.css', array(), '1.1.2' );
     wp_enqueue_script( 'jquery' );
 }
 
@@ -619,125 +620,179 @@ function my_admin_menu() {
 	add_menu_page( 'Analytics', 'Analytics', 'manage_options', 'admin-analytics.php', 'myplguin_admin_page', 'dashicons-chart-area', 6  );
 }
 
-// Enqueue Google Analytics API script
+require_once get_template_directory() . '/includes/class-ga4-analytics.php';
+
 add_action( 'admin_enqueue_scripts', 'analytics_admin_scripts' );
 function analytics_admin_scripts( $hook ) {
     if ( $hook != 'toplevel_page_admin-analytics' ) {
         return;
     }
-    
-    wp_enqueue_script( 'google-identity-services', 'https://accounts.google.com/gsi/client', array(), null, true );
+
     wp_enqueue_script( 'chart-js', 'https://cdn.jsdelivr.net/npm/chart.js', array(), '3.9.1', true );
-    wp_enqueue_script( 'analytics-config', get_template_directory_uri() . '/js/analytics-config.js', array(), '1.0', true );
-    wp_enqueue_script( 'analytics-admin', get_template_directory_uri() . '/js/analytics-admin.js', array( 'jquery', 'google-identity-services', 'chart-js', 'analytics-config' ), '1.0', true );
-    wp_enqueue_script( 'analytics-test', get_template_directory_uri() . '/js/analytics-test.js', array( 'jquery', 'analytics-admin' ), '1.0', true );
-    
-    // Pass AJAX URL and nonce to JavaScript
-    wp_localize_script( 'analytics-admin', 'analytics_ajax', array(
+    wp_enqueue_script( 'analytics-dashboard', get_template_directory_uri() . '/js/analytics-dashboard.js', array( 'jquery', 'chart-js' ), '1.4', true );
+
+    wp_localize_script( 'analytics-dashboard', 'analytics_ajax', array(
         'ajax_url' => admin_url( 'admin-ajax.php' ),
-        'nonce' => wp_create_nonce( 'analytics_nonce' )
+        'nonce' => wp_create_nonce( 'analytics_nonce' ),
+        'settings_url' => admin_url( 'options-general.php?page=ga4-settings' ),
     ));
 }
 
-// AJAX handler for analytics data
+add_action('admin_menu', 'add_ga4_settings_page');
+function add_ga4_settings_page() {
+    add_options_page(
+        'Google Analytics Settings',
+        'Google Analytics',
+        'manage_options',
+        'ga4-settings',
+        'ga4_settings_page'
+    );
+}
+
+function ga4_settings_page() {
+    if (isset($_POST['submit'])) {
+        check_admin_referer('ga4_settings_save');
+        update_option('ga4_enabled', isset($_POST['ga4_enabled']));
+        update_option('ga4_api_key', sanitize_text_field($_POST['ga4_api_key']));
+        update_option('ga4_property_id', sanitize_text_field($_POST['ga4_property_id']));
+        update_option('ga4_measurement_id', sanitize_text_field($_POST['ga4_measurement_id']));
+        update_option('ga4_service_account_email', sanitize_email($_POST['ga4_service_account_email']));
+        update_option('ga4_private_key', sanitize_textarea_field($_POST['ga4_private_key']));
+        update_option('ga4_project_id', sanitize_text_field($_POST['ga4_project_id']));
+        echo '<div class="notice notice-success"><p>Settings saved successfully.</p></div>';
+    }
+
+    $ga4_enabled = get_option('ga4_enabled', false);
+    $ga4_api_key = get_option('ga4_api_key', '');
+    $ga4_property_id = get_option('ga4_property_id', '');
+    $ga4_measurement_id = get_option('ga4_measurement_id', '');
+    $ga4_service_account_email = get_option('ga4_service_account_email', '');
+    $ga4_private_key = get_option('ga4_private_key', '');
+    $ga4_project_id = get_option('ga4_project_id', '');
+    ?>
+    <div class="wrap">
+        <h1>Google Analytics 4 Settings</h1>
+        <form method="post" action="">
+            <?php wp_nonce_field('ga4_settings_save'); ?>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Enable GA4 Integration</th>
+                    <td><input type="checkbox" name="ga4_enabled" value="1" <?php checked($ga4_enabled); ?> /></td>
+                </tr>
+                <tr>
+                    <th scope="row">API Key</th>
+                    <td><input type="text" name="ga4_api_key" value="<?php echo esc_attr($ga4_api_key); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Property ID</th>
+                    <td><input type="text" name="ga4_property_id" value="<?php echo esc_attr($ga4_property_id); ?>" class="regular-text" /><p class="description">Numeric GA4 property ID</p></td>
+                </tr>
+                <tr>
+                    <th scope="row">Measurement ID</th>
+                    <td><input type="text" name="ga4_measurement_id" value="<?php echo esc_attr($ga4_measurement_id); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Service Account Email</th>
+                    <td><input type="email" name="ga4_service_account_email" value="<?php echo esc_attr($ga4_service_account_email); ?>" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row">Private Key</th>
+                    <td><textarea name="ga4_private_key" rows="8" cols="70" class="large-text code"><?php echo esc_textarea($ga4_private_key); ?></textarea></td>
+                </tr>
+                <tr>
+                    <th scope="row">Project ID</th>
+                    <td><input type="text" name="ga4_project_id" value="<?php echo esc_attr($ga4_project_id); ?>" class="regular-text" /></td>
+                </tr>
+            </table>
+            <?php submit_button(); ?>
+        </form>
+        <?php if ($ga4_enabled && !empty($ga4_property_id)) : ?>
+        <h2>Test Connection</h2>
+        <p>
+            <button type="button" id="test-ga4-connection" class="button">Test GA4 Connection</button>
+            <span id="connection-status"></span>
+        </p>
+        <script>
+        jQuery(function($) {
+            $('#test-ga4-connection').on('click', function() {
+                var button = $(this);
+                var status = $('#connection-status');
+                button.prop('disabled', true).text('Testing...');
+                status.html('');
+                $.post(ajaxurl, {
+                    action: 'test_ga4_connection',
+                    nonce: '<?php echo wp_create_nonce('ga4_test_nonce'); ?>'
+                }).done(function(response) {
+                    if (response.success) {
+                        status.html('<span style="color:green;">✅ ' + response.data.message + '</span>');
+                    } else {
+                        status.html('<span style="color:red;">❌ ' + (response.data && response.data.message ? response.data.message : 'Connection failed') + '</span>');
+                    }
+                }).fail(function() {
+                    status.html('<span style="color:red;">❌ Connection test failed</span>');
+                }).always(function() {
+                    button.prop('disabled', false).text('Test GA4 Connection');
+                });
+            });
+        });
+        </script>
+        <?php endif; ?>
+    </div>
+    <?php
+}
+
+add_action('wp_ajax_test_ga4_connection', 'test_ga4_connection');
+function test_ga4_connection() {
+    check_ajax_referer('ga4_test_nonce', 'nonce');
+    $ga4 = new GA4_Analytics();
+    $result = $ga4->test_connection();
+    if ($result['success']) {
+        wp_send_json_success($result);
+    }
+    wp_send_json_error($result);
+}
+
 add_action( 'wp_ajax_get_analytics_data', 'get_analytics_data' );
 function get_analytics_data() {
     check_ajax_referer( 'analytics_nonce', 'nonce' );
-    
-    $period = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : 'day';
-    
-    // Generate comprehensive sample data
-    $data = generate_sample_analytics_data($period);
-    
-    wp_send_json_success( $data );
-}
 
-function generate_sample_analytics_data($period = 'day') {
-    $base_views = array(
-        'day' => 1200,
-        'week' => 8500,
-        'month' => 35000,
-        'all_time' => 125000
-    );
-    
-    $base_users = array(
-        'day' => 450,
-        'week' => 3200,
-        'month' => 12500,
-        'all_time' => 45000
-    );
-    
-    return array(
-        'connection_status' => 'sample_data', // 'connected', 'sample_data', 'error'
-        'period' => $period,
-        'page_views' => array(
-            'current' => $base_views[$period],
-            'previous' => $base_views[$period] * 0.85,
-            'change_percent' => 15.2,
-            'trend' => 'up',
-            'labels' => array('Home', 'Products', 'About', 'Contact', 'Blog'),
-            'data' => array(
-                $base_views[$period] * 0.25,
-                $base_views[$period] * 0.18,
-                $base_views[$period] * 0.15,
-                $base_views[$period] * 0.12,
-                $base_views[$period] * 0.10
-            )
-        ),
-        'real_time_users' => rand(5, 25),
-        'top_pages' => array(
-            array('page' => '/', 'views' => $base_views[$period] * 0.25, 'bounce_rate' => 35),
-            array('page' => '/products/', 'views' => $base_views[$period] * 0.18, 'bounce_rate' => 42),
-            array('page' => '/about/', 'views' => $base_views[$period] * 0.15, 'bounce_rate' => 28),
-            array('page' => '/contact/', 'views' => $base_views[$period] * 0.12, 'bounce_rate' => 55),
-            array('page' => '/blog/', 'views' => $base_views[$period] * 0.10, 'bounce_rate' => 38),
-            array('page' => '/downloads/', 'views' => $base_views[$period] * 0.08, 'bounce_rate' => 45),
-            array('page' => '/support/', 'views' => $base_views[$period] * 0.07, 'bounce_rate' => 32),
-            array('page' => '/pricing/', 'views' => $base_views[$period] * 0.05, 'bounce_rate' => 48),
-            array('page' => '/news/', 'views' => $base_views[$period] * 0.03, 'bounce_rate' => 25),
-            array('page' => '/careers/', 'views' => $base_views[$period] * 0.02, 'bounce_rate' => 60)
-        ),
-        'traffic_sources' => array(
-            'labels' => array('Organic Search', 'Direct', 'Social', 'Referral', 'Email'),
-            'data' => array(45, 25, 15, 10, 5),
-            'sources' => array(
-                array('source' => 'Organic Search', 'sessions' => 45, 'percentage' => 45),
-                array('source' => 'Direct', 'sessions' => 25, 'percentage' => 25),
-                array('source' => 'Social', 'sessions' => 15, 'percentage' => 15),
-                array('source' => 'Referral', 'sessions' => 10, 'percentage' => 10),
-                array('source' => 'Email', 'sessions' => 5, 'percentage' => 5)
-            )
-        ),
-        'pdf_downloads' => array(
-            array('file' => 'DataON-HCI-Solution-Guide.pdf', 'downloads' => 156, 'last_download' => '2 hours ago'),
-            array('file' => 'Azure-Stack-HCI-Datasheet.pdf', 'downloads' => 89, 'last_download' => '1 hour ago'),
-            array('file' => 'Storage-Solutions-Whitepaper.pdf', 'downloads' => 67, 'last_download' => '3 hours ago'),
-            array('file' => 'Performance-Benchmarks.pdf', 'downloads' => 43, 'last_download' => '5 hours ago'),
-            array('file' => 'Deployment-Guide.pdf', 'downloads' => 34, 'last_download' => '1 day ago'),
-            array('file' => 'Troubleshooting-Manual.pdf', 'downloads' => 28, 'last_download' => '2 days ago'),
-            array('file' => 'Security-Protocols.pdf', 'downloads' => 22, 'last_download' => '3 days ago'),
-            array('file' => 'Integration-Guide.pdf', 'downloads' => 19, 'last_download' => '4 days ago'),
-            array('file' => 'Best-Practices.pdf', 'downloads' => 15, 'last_download' => '1 week ago'),
-            array('file' => 'Case-Study-Enterprise.pdf', 'downloads' => 12, 'last_download' => '1 week ago')
-        ),
-        'trending_insights' => array(
-            array('type' => 'spike', 'title' => 'Traffic Spike', 'description' => '50% increase in organic traffic from "hyper-converged infrastructure" searches', 'impact' => 'high'),
-            array('type' => 'trend', 'title' => 'PDF Downloads Up', 'description' => 'DataON-HCI-Solution-Guide.pdf downloads increased 25% this week', 'impact' => 'medium'),
-            array('type' => 'source', 'title' => 'New Traffic Source', 'description' => 'LinkedIn referrals increased 40% in the last 7 days', 'impact' => 'medium'),
-            array('type' => 'page', 'title' => 'Product Page Performance', 'description' => '/products/ page bounce rate dropped 15% after recent updates', 'impact' => 'high'),
-            array('type' => 'device', 'title' => 'Mobile Usage', 'description' => 'Mobile traffic increased 30% compared to last month', 'impact' => 'medium')
-        ),
-        'recent_activity' => array(
-            array('time' => '2 minutes ago', 'event' => 'PDF Download', 'page' => '/downloads/', 'file' => 'DataON-HCI-Solution-Guide.pdf'),
-            array('time' => '5 minutes ago', 'event' => 'Form Submission', 'page' => '/contact/', 'details' => 'Contact form submitted'),
-            array('time' => '8 minutes ago', 'event' => 'Page View', 'page' => '/products/', 'details' => 'Product page viewed'),
-            array('time' => '12 minutes ago', 'event' => 'Email Signup', 'page' => '/newsletter/', 'details' => 'Newsletter subscription'),
-            array('time' => '15 minutes ago', 'event' => 'PDF Download', 'page' => '/downloads/', 'file' => 'Azure-Stack-HCI-Datasheet.pdf'),
-            array('time' => '18 minutes ago', 'event' => 'Page View', 'page' => '/about/', 'details' => 'About page viewed'),
-            array('time' => '22 minutes ago', 'event' => 'Form Submission', 'page' => '/support/', 'details' => 'Support ticket submitted'),
-            array('time' => '25 minutes ago', 'event' => 'Page View', 'page' => '/blog/', 'details' => 'Blog post viewed')
-        )
-    );
+    $period = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : 'week';
+    $start_date = isset($_POST['start_date']) ? sanitize_text_field($_POST['start_date']) : null;
+    $end_date = isset($_POST['end_date']) ? sanitize_text_field($_POST['end_date']) : null;
+
+    if ($period === 'custom') {
+        if (empty($start_date) || empty($end_date)) {
+            wp_send_json_error('Custom range requires a start and end date.');
+        }
+
+        if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $start_date) || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $end_date)) {
+            wp_send_json_error('Dates must use YYYY-MM-DD format.');
+        }
+
+        if (strtotime($start_date) > strtotime($end_date)) {
+            wp_send_json_error('Start date must be before end date.');
+        }
+    }
+
+    $ga4_enabled = get_option('ga4_enabled', false);
+    $ga4_property_id = get_option('ga4_property_id', '');
+
+    if (!$ga4_enabled || empty($ga4_property_id)) {
+        wp_send_json_error('Google Analytics 4 is not configured. Go to Settings → Google Analytics.');
+    }
+
+    $ga4 = new GA4_Analytics();
+    if ($period === 'custom' && $start_date && $end_date) {
+        $live_data = $ga4->get_analytics_data($period, $start_date, $end_date);
+    } else {
+        $live_data = $ga4->get_analytics_data($period);
+    }
+
+    if ($live_data && isset($live_data['connection_status']) && $live_data['connection_status'] === 'connected') {
+        wp_send_json_success($live_data);
+    }
+
+    wp_send_json_error('Failed to load live Google Analytics data. Check Settings → Google Analytics and test the connection.');
 }
 
 function myplguin_admin_page(){
@@ -902,9 +957,49 @@ function myplguin_admin_page(){
 
 .period-filters {
     display: flex;
-    gap: 10px;
+    flex-direction: column;
+    gap: 12px;
     margin-bottom: 20px;
+}
+
+.period-filters__buttons {
+    display: flex;
+    gap: 10px;
     flex-wrap: wrap;
+}
+
+.period-filters__range {
+    font-size: 0.95em;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.period-filters__custom {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    padding: 14px 16px;
+    background: #f8f9fa;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+.period-date-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85em;
+    color: #4a5568;
+}
+
+.period-date-field input[type="date"] {
+    min-height: 34px;
+    padding: 4px 8px;
+}
+
+.period-apply-custom {
+    min-height: 34px;
 }
 
 .period-button {
@@ -1093,6 +1188,15 @@ function myplguin_admin_page(){
     border-left: 4px solid #c33;
 }
 
+.analytics-notice {
+    background: #fff8e5;
+    color: #7a5b00;
+    padding: 12px 15px;
+    border-radius: 5px;
+    margin: 0 0 20px;
+    border-left: 4px solid #f0b429;
+}
+
 .real-time-indicator {
     display: inline-block;
     width: 8px;
@@ -1107,6 +1211,18 @@ function myplguin_admin_page(){
     0% { opacity: 1; }
     50% { opacity: 0.5; }
     100% { opacity: 1; }
+}
+
+.period-range-label {
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 0.55em;
+    font-weight: 500;
+    color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+    padding: 4px 10px;
+    border-radius: 12px;
+    vertical-align: middle;
 }
 
 @media (max-width: 768px) {
@@ -1146,7 +1262,7 @@ function myplguin_admin_page(){
             <p>Comprehensive insights and real-time data</p>
         </div>
         <div class="connection-status sample" id="connection-status">
-            <span>📊 Sample Data</span>
+            <span>Loading live data...</span>
         </div>
     </div>
 
@@ -1188,373 +1304,6 @@ function myplguin_admin_page(){
         <div class="loading">Loading analytics data...</div>
     </div>
 </div>
-
-<script>
-jQuery(document).ready(function($) {
-    let currentPeriod = 'day';
-    let currentTab = 'overview';
-    
-    // Initialize dashboard
-    loadAnalyticsData();
-    
-    // Tab navigation
-    $('.tab-button').on('click', function() {
-        $('.tab-button').removeClass('active');
-        $(this).addClass('active');
-        currentTab = $(this).data('tab');
-        loadAnalyticsData();
-    });
-    
-    // Period filters
-    $(document).on('click', '.period-button', function() {
-        $('.period-button').removeClass('active');
-        $(this).addClass('active');
-        currentPeriod = $(this).data('period');
-        loadAnalyticsData();
-    });
-    
-    function loadAnalyticsData() {
-        $.ajax({
-            url: analytics_ajax.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'get_analytics_data',
-                nonce: analytics_ajax.nonce,
-                period: currentPeriod
-            },
-            success: function(response) {
-                if (response.success) {
-                    renderAnalyticsDashboard(response.data);
-                } else {
-                    showError('Failed to load analytics data');
-                }
-            },
-            error: function() {
-                showError('Failed to connect to analytics service');
-            }
-        });
-    }
-    
-    function renderAnalyticsDashboard(data) {
-        updateMetrics(data);
-        updateConnectionStatus(data.connection_status);
-        
-        const content = renderTabContent(data, currentTab);
-        $('#analytics-content').html(content);
-        
-        if (currentTab === 'overview') {
-            renderOverviewCharts(data);
-        }
-    }
-    
-    function updateMetrics(data) {
-        $('#page-views-value').text(data.page_views.current.toLocaleString());
-        $('#real-time-users').text(data.real_time_users);
-        $('#unique-users').text(Math.round(data.page_views.current * 0.4).toLocaleString());
-        $('#bounce-rate').text('42.5%');
-        
-        $('#page-views-change').text('+' + data.page_views.change_percent + '%');
-        $('#unique-users-change').text('+8.5%');
-        $('#bounce-rate-change').text('-2.1%');
-    }
-    
-    function updateConnectionStatus(status) {
-        const statusElement = $('#connection-status');
-        statusElement.removeClass('connected sample error');
-        
-        switch(status) {
-            case 'connected':
-                statusElement.addClass('connected').html('<span>✅ Connected to Google Analytics</span>');
-                break;
-            case 'sample_data':
-                statusElement.addClass('sample').html('<span>📊 Sample Data</span>');
-                break;
-            case 'error':
-                statusElement.addClass('error').html('<span>❌ Connection Error</span>');
-                break;
-        }
-    }
-    
-    function renderTabContent(data, tab) {
-        switch(tab) {
-            case 'overview':
-                return renderOverviewTab(data);
-            case 'pages':
-                return renderPagesTab(data);
-            case 'traffic':
-                return renderTrafficTab(data);
-            case 'downloads':
-                return renderDownloadsTab(data);
-            case 'insights':
-                return renderInsightsTab(data);
-            case 'activity':
-                return renderActivityTab(data);
-            default:
-                return renderOverviewTab(data);
-        }
-    }
-    
-    function renderOverviewTab(data) {
-        return `
-            <div class="tab-content active">
-                <div class="period-filters">
-                    <button class="period-button active" data-period="day">Day</button>
-                    <button class="period-button" data-period="week">Week</button>
-                    <button class="period-button" data-period="month">Month</button>
-                    <button class="period-button" data-period="all_time">All Time</button>
-                </div>
-                
-                <div class="charts-grid">
-                    <div class="chart-container">
-                        <h3>Page Views Trend</h3>
-                        <canvas id="pageViewsChart" class="chart-canvas"></canvas>
-                    </div>
-                    
-                    <div class="chart-container">
-                        <h3>Traffic Sources</h3>
-                        <canvas id="trafficSourcesChart" class="chart-canvas"></canvas>
-                    </div>
-                </div>
-                
-                <div class="insights-grid">
-                    ${data.trending_insights.slice(0, 3).map(insight => `
-                        <div class="insight-card ${insight.impact}-impact">
-                            <div class="insight-title">${insight.title}</div>
-                            <div class="insight-description">${insight.description}</div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-    
-    function renderPagesTab(data) {
-        return `
-            <div class="tab-content active">
-                <div class="period-filters">
-                    <button class="period-button active" data-period="day">Day</button>
-                    <button class="period-button" data-period="week">Week</button>
-                    <button class="period-button" data-period="month">Month</button>
-                    <button class="period-button" data-period="all_time">All Time</button>
-                </div>
-                
-                <div class="chart-container">
-                    <h3>Top 10 Pages</h3>
-                    <canvas id="topPagesChart" class="chart-canvas"></canvas>
-                </div>
-                
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Page</th>
-                            <th>Views</th>
-                            <th>Bounce Rate</th>
-                            <th>Avg. Time</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${data.top_pages.map(page => `
-                            <tr>
-                                <td>${page.page}</td>
-                                <td>${page.views.toLocaleString()}</td>
-                                <td>${page.bounce_rate}%</td>
-                                <td>${Math.floor(Math.random() * 5) + 1}m ${Math.floor(Math.random() * 60)}s</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
-    }
-    
-    function renderTrafficTab(data) {
-        return `
-            <div class="tab-content active">
-                <div class="period-filters">
-                    <button class="period-button active" data-period="day">Day</button>
-                    <button class="period-button" data-period="week">Week</button>
-                    <button class="period-button" data-period="month">Month</button>
-                    <button class="period-button" data-period="all_time">All Time</button>
-                </div>
-                
-                <div class="charts-grid">
-                    <div class="chart-container">
-                        <h3>Traffic Sources Breakdown</h3>
-                        <canvas id="trafficBreakdownChart" class="chart-canvas"></canvas>
-                    </div>
-                    
-                    <div class="chart-container">
-                        <h3>Source Performance</h3>
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Source</th>
-                                    <th>Sessions</th>
-                                    <th>%</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${data.traffic_sources.sources.map(source => `
-                                    <tr>
-                                        <td>${source.source}</td>
-                                        <td>${source.sessions}</td>
-                                        <td>${source.percentage}%</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    function renderDownloadsTab(data) {
-        return `
-            <div class="tab-content active">
-                <div class="period-filters">
-                    <button class="period-button active" data-period="day">Day</button>
-                    <button class="period-button" data-period="week">Week</button>
-                    <button class="period-button" data-period="month">Month</button>
-                    <button class="period-button" data-period="all_time">All Time</button>
-                </div>
-                
-                <div class="chart-container">
-                    <h3>PDF Download Trends</h3>
-                    <canvas id="pdfDownloadsChart" class="chart-canvas"></canvas>
-                </div>
-                
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>PDF File</th>
-                            <th>Downloads</th>
-                            <th>Last Download</th>
-                            <th>Trend</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${data.pdf_downloads.map(pdf => `
-                            <tr>
-                                <td>${pdf.file}</td>
-                                <td>${pdf.downloads}</td>
-                                <td>${pdf.last_download}</td>
-                                <td>
-                                    <span class="metric-change positive">+${Math.floor(Math.random() * 20) + 5}%</span>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
-    }
-    
-    function renderInsightsTab(data) {
-        return `
-            <div class="tab-content active">
-                <h3>Trending Insights & Anomalies</h3>
-                
-                <div class="insights-grid">
-                    ${data.trending_insights.map(insight => `
-                        <div class="insight-card ${insight.impact}-impact">
-                            <div class="insight-title">${insight.title}</div>
-                            <div class="insight-description">${insight.description}</div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-    
-    function renderActivityTab(data) {
-        return `
-            <div class="tab-content active">
-                <h3>Recent Activity Feed</h3>
-                
-                <div class="activity-feed">
-                    ${data.recent_activity.map(activity => `
-                        <div class="activity-item">
-                            <div class="activity-icon">📊</div>
-                            <div class="activity-content">
-                                <div class="activity-event">${activity.event}</div>
-                                <div class="activity-time">${activity.time} • ${activity.page}${activity.file ? ' • ' + activity.file : ''}</div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-    
-    function renderOverviewCharts(data) {
-        // Page Views Chart
-        const pageViewsCtx = document.getElementById('pageViewsChart');
-        if (pageViewsCtx) {
-            new Chart(pageViewsCtx.getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                    datasets: [{
-                        label: 'Page Views',
-                        data: [1200, 1350, 1100, 1400, 1600, 1800, 1500],
-                        borderColor: 'rgba(102, 126, 234, 1)',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Traffic Sources Chart
-        const trafficSourcesCtx = document.getElementById('trafficSourcesChart');
-        if (trafficSourcesCtx) {
-            new Chart(trafficSourcesCtx.getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: data.traffic_sources.labels,
-                    datasets: [{
-                        data: data.traffic_sources.data,
-                        backgroundColor: [
-                            'rgba(102, 126, 234, 0.8)',
-                            'rgba(118, 75, 162, 0.8)',
-                            'rgba(255, 193, 7, 0.8)',
-                            'rgba(40, 167, 69, 0.8)',
-                            'rgba(220, 53, 69, 0.8)'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-        }
-    }
-    
-    function showError(message) {
-        $('#analytics-content').html(`
-            <div class="error-message">
-                <strong>Error:</strong> ${message}
-            </div>
-        `);
-    }
-    
-    // Auto-refresh real-time data every 30 seconds
-    setInterval(function() {
-        $('#real-time-users').text(Math.floor(Math.random() * 20) + 5);
-    }, 30000);
-});
-</script>
 
 <?php 
 }

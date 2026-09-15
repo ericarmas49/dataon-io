@@ -7,7 +7,7 @@
         <div class="container">
             <div class="row">
                 <div class="footer-logo col-lg-2">
-                    <?php echo get_custom_logo(); ?>
+                    <?php echo preg_replace( '/alt=(["\']).*?\1/', 'alt="DataOn"', get_custom_logo() ); ?>
                 </div>
 
                 <div class="footer-nav col-lg-7">
@@ -69,6 +69,45 @@
 
         return false;
     }
+
+    (function () {
+        function updateLiveChatFrameTitles() {
+            var titledFrames = [
+                { selector: '#chat-widget', title: 'LiveChat chat window' },
+                { selector: '#chat-widget-minimized', title: 'LiveChat minimized chat button' }
+            ];
+
+            titledFrames.forEach(function (frame) {
+                var element = document.querySelector(frame.selector);
+                if (element) {
+                    element.setAttribute('title', frame.title);
+                }
+            });
+
+            var liveChatFrames = document.querySelectorAll('iframe[src*="livechatinc.com"], iframe[src*="livechat.com"], [id*="chat"] iframe, [class*="chat"] iframe, [id*="livechat"] iframe, [class*="livechat"] iframe');
+            liveChatFrames.forEach(function (frame, index) {
+                if (!frame.getAttribute('title')) {
+                    frame.setAttribute('title', 'LiveChat customer support frame ' + (index + 1));
+                }
+            });
+
+            document.querySelectorAll('iframe:not([title])').forEach(function (frame, index) {
+                frame.setAttribute('title', 'Embedded third-party content frame ' + (index + 1));
+            });
+        }
+
+        updateLiveChatFrameTitles();
+
+        if ('MutationObserver' in window) {
+            new MutationObserver(updateLiveChatFrameTitles).observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        }
+
+        setTimeout(updateLiveChatFrameTitles, 500);
+        setTimeout(updateLiveChatFrameTitles, 1500);
+    }());
 </script>
 
 

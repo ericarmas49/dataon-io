@@ -2,7 +2,7 @@
     <div class="container">
         <div class="row cta">
             <div class="col-12 col-lg-6 col-md-12 cta-content">
-                <h4>No one knows Microsoft Azure local like DataON</h4>
+                <h3>No one knows Microsoft Azure local like DataON</h3>
                 <p role="heading" aria-level="2" aria-label="We can help">We can help you make the leap to hybrid cloud</p>
             </div>
 
@@ -18,7 +18,7 @@
                     </div>
 
                     <div id="chatNow" onclick="liveChat()" class="col-12 col-lg-3 col-md-6 col-sm-12 chat">
-                        <div class="cta-icon" tabindex="0" role="button" aria-label="Open LiveChat" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();liveChat();}">
+                        <div class="cta-icon" tabindex="0" role="button" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();liveChat();}">
                             <img alt="" src="https://dataon.wpengine.com/wp-content/uploads/2023/12/Chat-now.svg" />
                             Chat Now
                         </div>

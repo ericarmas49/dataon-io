@@ -51,7 +51,7 @@
 <body <?php body_class(); ?>>
 
     <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P9W5CQKS"
+    <noscript><iframe title="Google Tag Manager" src="https://www.googletagmanager.com/ns.html?id=GTM-P9W5CQKS"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
 
@@ -94,7 +94,7 @@
                                 if(!empty($m['add_dropdown'])) {
                                     $dropdownMenuType = $m['dropdown_menu_type'];
                                     echo '<li class="nav-item dropdown '.$dropdownMenuType.'">';
-                                        echo '<a class="nav-link dropdown-toggle" href="#" aria-expanded="false" data-bs-toggle="dropdown" id="menu-'.sanitize_title($m['menu_label']).'">'.esc_html($m['menu_label']).'</a>';
+                                        echo '<button class="nav-link dropdown-toggle" type="button" aria-expanded="false" data-bs-toggle="dropdown" id="menu-'.sanitize_title($m['menu_label']).'">'.esc_html($m['menu_label']).'</button>';
 
                                     if($dropdownMenuType === 'dropdown-megamenu') {
                                         echo '

@@ -1,0 +1,117 @@
+.do-icon-link-bar.section {
+    max-width: 1400px !important;
+    width: 100%;
+    margin: 0 auto 10rem;
+    padding: 0;
+    font-size: 16px;
+}
+
+.do-icon-link-bar__empty {
+    padding: 2rem;
+    text-align: center;
+}
+
+.do-icon-link-bar__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 2em;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.do-icon-link-bar__item {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-height: 88px;
+    padding: 1.5rem;
+    border-radius: 18px;
+    text-decoration: none !important;
+    color: inherit !important;
+    background: transparent;
+    transition: background-color 0.2s ease;
+}
+
+a.do-icon-link-bar__item:hover,
+a.do-icon-link-bar__item:focus-visible {
+    background: transparent;
+}
+
+.do-icon-link-bar__icon-wrap {
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease;
+}
+
+a.do-icon-link-bar__item:hover .do-icon-link-bar__icon-wrap,
+a.do-icon-link-bar__item:focus-visible .do-icon-link-bar__icon-wrap {
+    background: rgb(253, 180, 21);
+}
+
+.do-icon-link-bar__icon {
+    width: 55px !important;
+    height: 55px !important;
+    max-width: 55px !important;
+    object-fit: contain;
+    flex-shrink: 0;
+    transition: filter 0.2s ease;
+}
+
+a.do-icon-link-bar__item:hover .do-icon-link-bar__icon,
+a.do-icon-link-bar__item:focus-visible .do-icon-link-bar__icon {
+    filter: none;
+}
+
+.do-icon-link-bar__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.do-icon-link-bar__title {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: #111 !important;
+}
+
+.do-icon-link-bar__subtitle {
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.35;
+    color: #8a8a8a !important;
+}
+
+/* Prevent wpautop paragraph wrappers from breaking the grid layout */
+.entry-content .do-icon-link-bar__grid > p {
+    display: contents;
+    margin: 0;
+}
+
+@media screen and (max-width: 991px) {
+    .do-icon-link-bar__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .do-icon-link-bar__item {
+        min-width: 220px;
+    }
+}
+
+@media screen and (max-width: 575px) {
+    .do-icon-link-bar__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .do-icon-link-bar__item {
+        min-width: 0;
+    }
+}

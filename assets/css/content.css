@@ -352,6 +352,10 @@ body.blog .entry-title {
         padding: 6rem 0; 
     }
 
+    .main-home {
+        padding: 0;
+    }
+
 }
 @media(min-width: 1400px) {
     .wp-container { max-width: 1400px; margin: 0 auto !important; }

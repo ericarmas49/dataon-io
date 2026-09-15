@@ -1,0 +1,55 @@
+/* Icon Link Bar — block editor preview */
+.acf-block-preview .do-icon-link-bar.section {
+    margin-bottom: 1.5rem;
+    padding: 0;
+}
+
+.acf-block-preview .do-icon-link-bar__grid {
+    flex-wrap: wrap;
+}
+
+.acf-block-preview .do-icon-link-bar__item {
+    pointer-events: none;
+    cursor: default;
+}
+
+.block-editor-block-list__block[data-type="acf/do-icon-link-bar"] .acf-block-preview {
+    overflow: visible;
+}
+
+/* ACF sidebar panel fields */
+.acf-block-panel .acf-field[data-name="ilb_items"] > .acf-label label {
+    font-weight: 600;
+}
+
+.acf-block-panel .acf-field[data-name="ilb_items"] .acf-row {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    background: #fff;
+}
+
+.acf-block-panel .acf-field[data-name="ilb_items"] .acf-row-handle {
+    background: #f6f7f7;
+    border-bottom: 1px solid #ddd;
+}
+
+.acf-block-panel .acf-field[data-name="ilb_items"] .acf-fields.-border {
+    border: 0;
+    background: transparent;
+}
+
+.acf-block-panel .acf-field[data-name="ilb_items"] .acf-field[data-name="icon"] img {
+    max-width: 48px;
+    max-height: 48px;
+    width: auto;
+    height: auto;
+}
+
+.acf-block-panel .acf-field[data-name="ilb_items"] .acf-link {
+    display: block;
+}
+
+.acf-block-panel .acf-field[data-name="ilb_items"] .acf-link a {
+    word-break: break-all;
+}
