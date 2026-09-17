@@ -46,6 +46,65 @@ function blankslate_enqueue() {
     wp_enqueue_style('bs-content', get_stylesheet_directory_uri() . '/assets/css/content.css');
     wp_enqueue_style( 'do-icon-link-bar', get_stylesheet_directory_uri() . '/assets/css/icon-link-bar.css', array(), '1.1.2' );
     wp_enqueue_script( 'jquery' );
+
+    if ( blankslate_needs_testimonials_slider() ) {
+        blankslate_enqueue_testimonials_slider_assets();
+    }
+}
+
+function blankslate_needs_testimonials_slider() {
+    if ( is_front_page() ) {
+        return true;
+    }
+
+    if ( ! is_singular() ) {
+        return false;
+    }
+
+    $post = get_post();
+    if ( ! $post || empty( $post->post_content ) ) {
+        return false;
+    }
+
+    return false !== strpos( $post->post_content, 'testimonials' );
+}
+
+function blankslate_enqueue_testimonials_slider_assets() {
+    $version = '1.0.0';
+
+    wp_enqueue_style(
+        'slick-carousel',
+        'https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.css',
+        array(),
+        '1.9.0'
+    );
+    wp_enqueue_style(
+        'slick-carousel-theme',
+        'https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick-theme.css',
+        array( 'slick-carousel' ),
+        '1.9.0'
+    );
+    wp_enqueue_style(
+        'do-testimonials',
+        get_stylesheet_directory_uri() . '/assets/css/testimonials.css',
+        array( 'slick-carousel-theme' ),
+        $version
+    );
+
+    wp_enqueue_script(
+        'slick-carousel',
+        'https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js',
+        array( 'jquery' ),
+        '1.8.1',
+        true
+    );
+    wp_enqueue_script(
+        'do-testimonials-slider',
+        get_stylesheet_directory_uri() . '/js/testimonials-slider.js',
+        array( 'jquery', 'slick-carousel' ),
+        $version,
+        true
+    );
 }
 
 /**
@@ -1599,7 +1658,21 @@ function dataon_request_path() {
 }
 
 function dataon_accepts_markdown() {
+    if ( isset( $_GET['format'] ) && sanitize_key( wp_unslash( $_GET['format'] ) ) === 'markdown' ) {
+        return true;
+    }
+
     $accept = isset( $_SERVER['HTTP_ACCEPT'] ) ? strtolower( (string) $_SERVER['HTTP_ACCEPT'] ) : '';
+    if ( $accept === '' ) {
+        return false;
+    }
+
+    // Normal browsers (including mobile Safari) always accept text/html.
+    // Only serve markdown when HTML is not accepted — e.g. AI agents requesting markdown explicitly.
+    if ( strpos( $accept, 'text/html' ) !== false ) {
+        return false;
+    }
+
     return strpos( $accept, 'text/markdown' ) !== false;
 }
 

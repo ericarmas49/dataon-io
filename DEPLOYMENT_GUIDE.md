@@ -25,10 +25,10 @@ git remote add wpengine-staging git@git.wpengine.com:staging/your-site-name.git
 
 ```bash
 # Push to staging environment
-git push wpengine-staging master
+git push wpengine-staging main
 
 # Or push to production (be careful!)
-git push wpengine master
+git push wpengine main
 ```
 
 ## 📋 Step-by-Step Instructions
@@ -64,7 +64,7 @@ git remote -v
 
 ```bash
 # Push to staging first (recommended)
-git push wpengine-staging master
+git push wpengine-staging main
 
 # Check deployment status
 # Go to your WP Engine dashboard and check the staging environment
@@ -85,7 +85,7 @@ git push wpengine-staging master
 
 ```bash
 # Only after testing on staging
-git push wpengine master
+git push wpengine main
 ```
 
 ## 🔧 Configuration for Production
@@ -123,10 +123,10 @@ git add js/analytics-config.js
 git commit -m "Update Google Analytics config for production"
 
 # Push to staging first
-git push wpengine-staging master
+git push wpengine-staging main
 
 # Test on staging, then push to production
-git push wpengine master
+git push wpengine main
 ```
 
 ## 🛠️ Troubleshooting
@@ -142,7 +142,7 @@ git push wpengine master
 2. **Push Rejected**
    ```bash
    # Force push (use with caution)
-   git push wpengine-staging master --force
+   git push wpengine-staging main --force
    ```
 
 3. **Files Not Updating**
@@ -166,7 +166,7 @@ git log --oneline
 git ls-files
 
 # Push to specific branch
-git push wpengine-staging master:master
+git push wpengine-staging main:main
 ```
 
 ## 📊 Post-Deployment Checklist
@@ -188,10 +188,10 @@ For ongoing development:
 # Then commit and push
 git add .
 git commit -m "Description of changes"
-git push wpengine-staging master
+git push wpengine-staging main
 
 # Test on staging, then push to production
-git push wpengine master
+git push wpengine main
 ```
 
 ## 📞 Support
